@@ -1,5 +1,5 @@
-import 'package:aszcars_tfg_andrei/screens/color_palette.dart';
-import 'package:aszcars_tfg_andrei/screens/login/components/input_form.dart';
+import 'package:aszcars_tfg_andrei/components/input_form.dart';
+import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -41,22 +41,17 @@ class LoginPage extends StatelessWidget {
               screenWidth: screenWidth,
               icono: Icons.email,
               labelhint: "Email",
+              password: false,
             ),
             SizedBox(height: 15),
             InputForm(
               screenWidth: screenWidth,
               icono: Icons.lock,
               labelhint: "Contraseña",
+              password: true,
             ),
             SizedBox(
               height: 20,
-            ),
-            Text(
-              "Has olvidado la contraseña?",
-              style: GoogleFonts.montserrat(
-                  color: color.colorTextoSecundario,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500),
             ),
             SizedBox(
               height: screenHeight * 0.1,
@@ -120,11 +115,16 @@ class LoginPage extends StatelessWidget {
                 SizedBox(
                   width: 5,
                 ),
-                Text("Registrate",
-                    style: GoogleFonts.montserrat(
-                        color: color.colorBoton,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500)),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, 'register');
+                  },
+                  child: Text("Registrate",
+                      style: GoogleFonts.montserrat(
+                          color: color.colorBoton,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500)),
+                ),
               ],
             )
           ],
