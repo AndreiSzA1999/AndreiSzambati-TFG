@@ -62,17 +62,22 @@ class LoginPage extends StatelessWidget {
               decoration: BoxDecoration(
                   color: color.colorBoton,
                   borderRadius: BorderRadius.circular(20)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Iniciar Sesión",
-                    style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13),
-                  )
-                ],
+              child: GestureDetector(
+                onTap: () {
+                  print("Login normal");
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Iniciar Sesión",
+                      style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13),
+                    )
+                  ],
+                ),
               ),
             ),
             SizedBox(
@@ -83,22 +88,27 @@ class LoginPage extends StatelessWidget {
               width: screenWidth * 0.85,
               decoration: BoxDecoration(
                   color: Colors.white, borderRadius: BorderRadius.circular(20)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    "assets/images/google-logo.png",
-                    height: 40,
-                  ),
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Text(
-                    "Iniciar Sesión con Google",
-                    style: GoogleFonts.montserrat(
-                        fontWeight: FontWeight.w600, fontSize: 13),
-                  )
-                ],
+              child: GestureDetector(
+                onTap: () {
+                  print("Con google");
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/images/google-logo.png",
+                      height: 40,
+                    ),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Text(
+                      "Iniciar Sesión con Google",
+                      style: GoogleFonts.montserrat(
+                          fontWeight: FontWeight.w600, fontSize: 13),
+                    )
+                  ],
+                ),
               ),
             ),
             SizedBox(

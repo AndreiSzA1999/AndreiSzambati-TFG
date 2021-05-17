@@ -1,6 +1,8 @@
+import 'package:aszcars_tfg_andrei/screens/message_screen/messages_screen.dart';
 import 'package:aszcars_tfg_andrei/widgets/post.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 
 class PostsPage extends StatefulWidget {
   @override
@@ -93,13 +95,9 @@ class _PostsPageState extends State<PostsPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                      icon: Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                      onPressed: () {}),
+                  SizedBox(
+                    width: 30,
+                  ),
                   Text(
                     "ASZCARS",
                     style: GoogleFonts.montserrat(
@@ -108,12 +106,19 @@ class _PostsPageState extends State<PostsPage> {
                         fontSize: 20),
                   ),
                   IconButton(
+                      splashColor: Colors.black,
                       icon: Icon(
-                        Icons.notifications,
+                        Ionicons.ios_paper_plane,
                         color: Colors.white,
-                        size: 30,
+                        size: 25,
                       ),
-                      onPressed: () {}),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MessagesPage()),
+                        );
+                      }),
                 ],
               ),
             ),

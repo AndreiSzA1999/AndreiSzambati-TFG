@@ -2,6 +2,7 @@ import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 
 class Post extends StatelessWidget {
   final String userName;
@@ -112,6 +113,15 @@ class Post extends StatelessWidget {
                       fontWeight: FontWeight.w500)),
               Expanded(child: SizedBox()),
               IconButton(
+                icon: Icon(
+                  Ionicons.ios_paper_plane,
+                  color: Colors.white,
+                ),
+                splashColor: Colors.black,
+                onPressed: () {},
+              ),
+              IconButton(
+                splashColor: Colors.black,
                 icon: !saved
                     ? FaIcon(FontAwesomeIcons.bookmark,
                         size: 20, color: Colors.white)
