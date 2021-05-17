@@ -1,4 +1,5 @@
-import 'package:aszcars_tfg_andrei/components/input_form.dart';
+import 'package:aszcars_tfg_andrei/components/imput_form.dart';
+
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 
 import 'package:flutter/material.dart';

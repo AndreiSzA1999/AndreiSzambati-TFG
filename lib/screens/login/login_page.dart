@@ -1,14 +1,22 @@
-import 'package:aszcars_tfg_andrei/components/input_form.dart';
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController email = TextEditingController();
+  final password = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
     var screenWidth = MediaQuery.of(context).size.width;
     ColorsPalette color = ColorsPalette();
+
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -37,18 +45,72 @@ class LoginPage extends StatelessWidget {
             SizedBox(
               height: screenHeight * 0.09,
             ),
-            InputForm(
-              screenWidth: screenWidth,
-              icono: Icons.email,
-              labelhint: "Email",
-              password: false,
+            Container(
+              height: 70,
+              width: screenWidth * 0.85,
+              decoration: BoxDecoration(
+                  color: color.colorSecundario,
+                  borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
+                child: TextFormField(
+                  controller: email,
+                  obscureText: false,
+                  cursorColor: Colors.white,
+                  style: GoogleFonts.montserrat(
+                      color: Colors.white, fontWeight: FontWeight.w400),
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      focusColor: Colors.white,
+                      hoverColor: Colors.white,
+                      fillColor: Colors.white,
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      icon: Icon(
+                        Icons.email,
+                        color: color.colorTextoSecundario,
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                      labelText: "Email",
+                      labelStyle: GoogleFonts.montserrat(
+                          color: color.colorTextoSecundario, fontSize: 15)),
+                ),
+              ),
             ),
             SizedBox(height: 15),
-            InputForm(
-              screenWidth: screenWidth,
-              icono: Icons.lock,
-              labelhint: "Contraseña",
-              password: true,
+            Container(
+              height: 70,
+              width: screenWidth * 0.85,
+              decoration: BoxDecoration(
+                  color: color.colorSecundario,
+                  borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
+                child: TextFormField(
+                  controller: password,
+                  obscureText: true,
+                  cursorColor: Colors.white,
+                  style: GoogleFonts.montserrat(
+                      color: Colors.white, fontWeight: FontWeight.w400),
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      focusColor: Colors.white,
+                      hoverColor: Colors.white,
+                      fillColor: Colors.white,
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      icon: Icon(
+                        Icons.security,
+                        color: color.colorTextoSecundario,
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                      labelText: "Contraseña",
+                      labelStyle: GoogleFonts.montserrat(
+                          color: color.colorTextoSecundario, fontSize: 15)),
+                ),
+              ),
             ),
             SizedBox(
               height: 20,
@@ -64,7 +126,9 @@ class LoginPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20)),
               child: GestureDetector(
                 onTap: () {
-                  print("Login normal");
+                  print("Resultados-------------------------------");
+                  print(email.text);
+                  print(password.text);
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

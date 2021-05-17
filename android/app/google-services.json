@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "970108332424",
+    "project_id": "aszcars-e3520",
+    "storage_bucket": "aszcars-e3520.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:970108332424:android:d1ce722046beb14ed8323d",
+        "android_client_info": {
+          "package_name": "com.example.aszcars_tfg_andrei"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "970108332424-mej8n30nc1ernbj5s5eodo7puksbjinj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8DMnTjJmq9EX_NYTH2Q8a5NSfrpVbnUw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "970108332424-mej8n30nc1ernbj5s5eodo7puksbjinj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
