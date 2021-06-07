@@ -1,12 +1,488 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
+import 'package:aszcars_tfg_andrei/models/posts.dart';
+import 'package:aszcars_tfg_andrei/models/user.dart';
+import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart'; // For Image Picker
+import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
-class AddPicturePage extends StatelessWidget {
+import '../../main.dart';
+import 'coche.dart';
+
+class AddPicturePage extends StatefulWidget {
+  @override
+  _AddPicturePageState createState() => _AddPicturePageState();
+}
+
+class _AddPicturePageState extends State<AddPicturePage> {
+  FirebaseAuth auth = FirebaseAuth.instance;
+
+  String _profileImage;
+  String _userName;
+
+  UserModel _currentUser;
+  ColorsPalette color = ColorsPalette();
+  final TextEditingController car = TextEditingController();
+  final TextEditingController descripcion = TextEditingController();
+  File _imagefile;
+  ImagePicker imagePicker = ImagePicker();
+  String imageUrl;
+  bool show;
+  String publicada;
+
+  Future<void> _chooseImage() async {
+    PickedFile pickedFile = await imagePicker.getImage(
+        source: ImageSource.gallery, imageQuality: 80);
+    setState(() {
+      _imagefile = File(pickedFile.path);
+    });
+    _uploadImage();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+    publicada = "";
+    imageUrl = "";
+    show = false;
+  }
+
+  getCurrentUser() async {
+    UserModel currentUser = await context
+        .read<AuthenticationService>()
+        .getUserFromDB(uid: auth.currentUser.uid);
+    _currentUser = currentUser;
+    setState(() {
+      _profileImage = _currentUser.profileimage;
+      _userName = _currentUser.username;
+    });
+  }
+
+  void _uploadImage() async {
+    String imageFileName = DateTime.now().millisecondsSinceEpoch.toString();
+    final _firebaseStorage = FirebaseStorage.instance;
+
+    var snapshot = await _firebaseStorage
+        .ref()
+        .child('posts/')
+        .child(imageFileName)
+        .putFile(_imagefile);
+
+    var downloadUrl = await snapshot.ref.getDownloadURL();
+    setState(() {
+      imageUrl = downloadUrl;
+      show = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text('Add picture'),
+    var screenWidth = MediaQuery.of(context).size.width;
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "CREAR POST NUEVO",
+                    style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20),
+                  )
+                ],
+              ),
+              SizedBox(height: 20),
+              Container(
+                height: 70,
+                width: screenWidth * 0.85,
+                decoration: BoxDecoration(
+                    color: color.colorSecundario,
+                    borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
+                  child: TextFormField(
+                    enabled: false,
+                    controller: car,
+                    obscureText: false,
+                    cursorColor: Colors.white,
+                    style: GoogleFonts.montserrat(
+                        color: Colors.white, fontWeight: FontWeight.w400),
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                        focusColor: Colors.white,
+                        hoverColor: Colors.white,
+                        fillColor: Colors.white,
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        icon: Icon(
+                          Icons.car_rental,
+                          color: color.colorTextoSecundario,
+                        ),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        labelText: "Coche de la imagen",
+                        labelStyle: GoogleFonts.montserrat(
+                            color: color.colorTextoSecundario, fontSize: 15)),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              Container(
+                height: 70,
+                width: screenWidth * 0.85,
+                decoration: BoxDecoration(
+                    color: color.colorBoton,
+                    borderRadius: BorderRadius.circular(20)),
+                child: GestureDetector(
+                  onTap: () {
+                    _navigateAndDisplaySelection(context);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Elegir coche",
+                        style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                height: 150,
+                width: screenWidth * 0.85,
+                decoration: BoxDecoration(
+                    color: color.colorSecundario,
+                    borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
+                  child: TextFormField(
+                    controller: descripcion,
+                    obscureText: false,
+                    cursorColor: Colors.white,
+                    style: GoogleFonts.montserrat(
+                        color: Colors.white, fontWeight: FontWeight.w400),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 3,
+                    maxLength: 100,
+                    decoration: InputDecoration(
+                        focusColor: Colors.white,
+                        hoverColor: Colors.white,
+                        fillColor: Colors.white,
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        icon: Icon(
+                          Icons.description,
+                          color: color.colorTextoSecundario,
+                        ),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        labelText: "Descripcion",
+                        labelStyle: GoogleFonts.montserrat(
+                            color: color.colorTextoSecundario, fontSize: 15)),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                height: 70,
+                width: screenWidth * 0.85,
+                decoration: BoxDecoration(
+                    color: color.colorBoton,
+                    borderRadius: BorderRadius.circular(20)),
+                child: GestureDetector(
+                  onTap: () {
+                    _chooseImage();
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Elegir imagen",
+                        style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _imagefile == null
+                      ? Text(
+                          "Fichero",
+                          style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13),
+                        )
+                      : Text(
+                          "Imagen Seleccionada",
+                          style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13),
+                        )
+                ],
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                height: 70,
+                width: screenWidth * 0.85,
+                decoration: BoxDecoration(
+                    color: color.colorBoton,
+                    borderRadius: BorderRadius.circular(20)),
+                child: show
+                    ? GestureDetector(
+                        onTap: () {
+                          addPostToDB();
+                          setState(() {
+                            publicada = "Post publicado.";
+                          });
+                          Future.delayed(const Duration(milliseconds: 100), () {
+                            Navigator.of(context).pushReplacement(
+                                new MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        AuthenticationWrapper()));
+                          });
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Publicar",
+                              style: GoogleFonts.montserrat(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13),
+                            )
+                          ],
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Seleccione la imagen",
+                            style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13),
+                          )
+                        ],
+                      ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                publicada,
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  Future<void> addPostToDB() async {
+    final userRef = FirebaseFirestore.instance.collection("posts");
+    final postModel = PostModel(
+        username: _userName,
+        likes: 0,
+        comments: 0,
+        descripcion: descripcion.text,
+        imageLink: imageUrl,
+        usercar: car.text,
+        profileImage: _profileImage,
+        timestamp: DateTime.now());
+    await userRef.doc().set(postModel.toMap(postModel));
+  }
+
+  void _navigateAndDisplaySelection(BuildContext context) async {
+    // Navigator.push returns a Future that completes after calling
+    // Navigator.pop on the Selection Screen.
+    final result = await Navigator.push(
+      context,
+      // Create the SelectionScreen in the next step.
+      MaterialPageRoute(builder: (context) => ElegirCoche()),
+    );
+
+    setState(() {
+      car.text = result;
+    });
+  }
+}
+
+class ElegirCoche extends StatefulWidget {
+  @override
+  _ElegirCocheState createState() => _ElegirCocheState();
+}
+
+class _ElegirCocheState extends State<ElegirCoche> {
+  ColorsPalette color = ColorsPalette();
+
+  List<Coche> _coches = [];
+
+  final List<String> _allCars = [];
+  List<String> _withFilter = [];
+  onItemChanged(String value) {
+    setState(() {
+      _withFilter = _allCars
+          .where((string) => string.toLowerCase().contains(value.toLowerCase()))
+          .toList();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    readJson();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+          backgroundColor: Colors.black,
+          body: Column(children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 50,
+                ),
+                Text(
+                  "ELEGIR COCHE",
+                  style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 20),
+                )
+              ],
+            ),
+            Container(
+              height: 70,
+              width: MediaQuery.of(context).size.width * 0.85,
+              decoration: BoxDecoration(
+                  color: color.colorSecundario,
+                  borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
+                child: TextField(
+                  onChanged: (value) => onItemChanged(value),
+                  cursorColor: Colors.white,
+                  style: GoogleFonts.montserrat(
+                      color: Colors.white, fontWeight: FontWeight.w400),
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      focusColor: Colors.white,
+                      hoverColor: Colors.white,
+                      fillColor: Colors.white,
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      icon: Icon(
+                        Icons.search,
+                        color: color.colorTextoSecundario,
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                      labelText: "Elegir coche",
+                      labelStyle: GoogleFonts.montserrat(
+                          color: color.colorTextoSecundario, fontSize: 15)),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Expanded(
+              child: ListView.builder(
+                physics: BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics()),
+                itemCount: _withFilter.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context, _withFilter[index]);
+                    },
+                    child: Card(
+                        color: color.colorSecundario,
+                        child: ListTile(
+                          title: Text(
+                            _withFilter[index],
+                            style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 20),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                          ),
+                        )),
+                  );
+                },
+              ),
+            ),
+          ])),
+    );
+  }
+
+  Future<void> readJson() async {
+    final String response =
+        await rootBundle.loadString('assets/json/coches.json');
+    final data = await json.decode(response);
+
+    setState(() {
+      for (final item in data) {
+        _coches.add(Coche(item["brand"], item["models"]));
+      }
+    });
+
+    setState(() {
+      for (int i = 0; i < _coches.length; i++) {
+        for (int j = 0; j < _coches[i].modelos.length; j++) {
+          _allCars.add(_coches[i].marca + " " + _coches[i].modelos[j]);
+        }
+      }
+
+      _withFilter = List.from(_allCars);
+    });
   }
 }

@@ -1,4 +1,6 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +15,8 @@ class Post extends StatelessWidget {
   final int comments;
   final bool saved;
   final String profile;
+  final String postDocument;
+  final bool canDelete;
 
   Post(
       {@required this.userName,
@@ -22,7 +26,9 @@ class Post extends StatelessWidget {
       @required this.likes,
       @required this.comments,
       @required this.saved,
-      @required this.profile});
+      @required this.profile,
+      @required this.postDocument,
+      @required this.canDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +51,11 @@ class Post extends StatelessWidget {
               SizedBox(
                 width: 20,
               ),
-              CircleAvatar(radius: 20, backgroundImage: NetworkImage(profile)),
+              CircleAvatar(
+                  radius: 20,
+                  backgroundImage: profile == null || profile.isEmpty
+                      ? AssetImage("assets/images/noimage.png")
+                      : NetworkImage(profile)),
               SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,6 +72,42 @@ class Post extends StatelessWidget {
                           fontWeight: FontWeight.w400)),
                 ],
               ),
+              Expanded(child: SizedBox()),
+              canDelete
+                  ? IconButton(
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                                  title: Text(
+                                      "¿Seguro que quieres borrar la imagen?"),
+                                  actions: [
+                                    TextButton(
+                                      child: Text("Si"),
+                                      onPressed: () {
+                                        FirebaseFirestore.instance
+                                            .collection("posts")
+                                            .doc(postDocument)
+                                            .delete();
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Text("No"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                ));
+                      },
+                      icon: Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                      ),
+                    )
+                  : SizedBox(width: 5),
+              SizedBox(width: 5)
             ],
           ),
           SizedBox(height: 10),

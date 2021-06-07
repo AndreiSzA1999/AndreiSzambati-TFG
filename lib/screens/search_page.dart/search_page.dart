@@ -1,8 +1,15 @@
+import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:flutter/material.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 
-class SearchPage extends StatelessWidget {
+class SearchPage extends StatefulWidget {
+  @override
+  _SearchPageState createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
+  final TextEditingController car = TextEditingController();
+  ColorsPalette colors = ColorsPalette();
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;

@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.aszcars_tfg_andrei">
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
    <application
         android:label="aszcars_tfg_andrei"
         android:icon="@mipmap/ic_launcher">

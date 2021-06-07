@@ -2,22 +2,25 @@ import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class InputForm extends StatelessWidget {
-  InputForm(
-      {@required this.screenWidth,
-      @required this.icono,
+class NameForm extends StatefulWidget {
+  NameForm(
+      {@required this.icono,
       @required this.labelhint,
-      @required this.password});
+      @required this.controllertext});
 
-  final double screenWidth;
   final IconData icono;
   final String labelhint;
-  final bool password;
+  final TextEditingController controllertext;
 
+  @override
+  _NameFormState createState() => _NameFormState();
+}
+
+class _NameFormState extends State<NameForm> {
   @override
   Widget build(BuildContext context) {
     ColorsPalette color = ColorsPalette();
-
+    final screenWidth = MediaQuery.of(context).size.width;
     return Container(
       height: 70,
       width: screenWidth * 0.85,
@@ -27,11 +30,12 @@ class InputForm extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
         child: TextFormField(
-          obscureText: password,
+          controller: widget.controllertext,
           cursorColor: Colors.white,
           style: GoogleFonts.montserrat(
               color: Colors.white, fontWeight: FontWeight.w400),
-          keyboardType: TextInputType.text,
+          keyboardType: TextInputType.name,
+          textInputAction: TextInputAction.next,
           decoration: InputDecoration(
               focusColor: Colors.white,
               hoverColor: Colors.white,
@@ -40,11 +44,11 @@ class InputForm extends StatelessWidget {
               focusedBorder: InputBorder.none,
               errorBorder: InputBorder.none,
               icon: Icon(
-                icono,
+                widget.icono,
                 color: color.colorTextoSecundario,
               ),
               floatingLabelBehavior: FloatingLabelBehavior.never,
-              labelText: labelhint,
+              labelText: widget.labelhint,
               labelStyle: GoogleFonts.montserrat(
                   color: color.colorTextoSecundario, fontSize: 15)),
         ),

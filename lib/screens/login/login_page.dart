@@ -1,6 +1,15 @@
+import 'package:aszcars_tfg_andrei/components/email_form.dart';
+import 'package:aszcars_tfg_andrei/components/password_form.dart';
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
+
+import 'package:aszcars_tfg_andrei/screens/register/register_page.dart';
+import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../main.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -8,9 +17,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  FirebaseAuth auth = FirebaseAuth.instance;
+  final DateTime timestamp = DateTime.now();
   final TextEditingController email = TextEditingController();
   final password = TextEditingController();
-
+  String error = "";
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
@@ -45,75 +56,27 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(
               height: screenHeight * 0.09,
             ),
-            Container(
-              height: 70,
-              width: screenWidth * 0.85,
-              decoration: BoxDecoration(
-                  color: color.colorSecundario,
-                  borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
-                child: TextFormField(
-                  controller: email,
-                  obscureText: false,
-                  cursorColor: Colors.white,
-                  style: GoogleFonts.montserrat(
-                      color: Colors.white, fontWeight: FontWeight.w400),
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                      focusColor: Colors.white,
-                      hoverColor: Colors.white,
-                      fillColor: Colors.white,
-                      border: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      icon: Icon(
-                        Icons.email,
-                        color: color.colorTextoSecundario,
-                      ),
-                      floatingLabelBehavior: FloatingLabelBehavior.never,
-                      labelText: "Email",
-                      labelStyle: GoogleFonts.montserrat(
-                          color: color.colorTextoSecundario, fontSize: 15)),
-                ),
-              ),
+            EmailForm(
+              controllertext: email,
+              icono: Icons.email,
+              labelhint: "Email",
             ),
             SizedBox(height: 15),
-            Container(
-              height: 70,
-              width: screenWidth * 0.85,
-              decoration: BoxDecoration(
-                  color: color.colorSecundario,
-                  borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
-                child: TextFormField(
-                  controller: password,
-                  obscureText: true,
-                  cursorColor: Colors.white,
-                  style: GoogleFonts.montserrat(
-                      color: Colors.white, fontWeight: FontWeight.w400),
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                      focusColor: Colors.white,
-                      hoverColor: Colors.white,
-                      fillColor: Colors.white,
-                      border: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      icon: Icon(
-                        Icons.security,
-                        color: color.colorTextoSecundario,
-                      ),
-                      floatingLabelBehavior: FloatingLabelBehavior.never,
-                      labelText: "Contraseña",
-                      labelStyle: GoogleFonts.montserrat(
-                          color: color.colorTextoSecundario, fontSize: 15)),
-                ),
-              ),
+            PasswordForm(
+              controllertext: password,
+              icono: Icons.lock,
+              labelhint: "Contraseña",
             ),
             SizedBox(
               height: 20,
+            ),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 13),
             ),
             SizedBox(
               height: screenHeight * 0.1,
@@ -125,10 +88,32 @@ class _LoginPageState extends State<LoginPage> {
                   color: color.colorBoton,
                   borderRadius: BorderRadius.circular(20)),
               child: GestureDetector(
-                onTap: () {
-                  print("Resultados-------------------------------");
-                  print(email.text);
-                  print(password.text);
+                onTap: () async {
+                  String p =
+                      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+                  RegExp regExp = new RegExp(p);
+
+                  if (regExp.hasMatch(email.text) &&
+                      email.text.isNotEmpty &&
+                      password.text.isNotEmpty) {
+                    final resultadoLogin = await context
+                        .read<AuthenticationService>()
+                        .signIn(email: email.text, password: password.text);
+                    if (resultadoLogin == "Signed In") {
+                      Navigator.of(context).pushReplacement(
+                          new MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  AuthenticationWrapper()));
+                    } else {
+                      setState(() {
+                        error = resultadoLogin;
+                      });
+                    }
+                  } else {
+                    setState(() {
+                      error = "Email o contraseña introducidos \n no validos";
+                    });
+                  }
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -191,7 +176,10 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, 'register');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RegisterPage()),
+                    );
                   },
                   child: Text("Registrate",
                       style: GoogleFonts.montserrat(
