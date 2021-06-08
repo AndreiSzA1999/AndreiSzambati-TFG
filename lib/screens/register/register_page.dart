@@ -56,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     fontSize: 13,
                     fontWeight: FontWeight.w400)),
             SizedBox(
-              height: screenHeight * 0.09,
+              height: screenHeight * 0.05,
             ),
             NameForm(
               controllertext: nombreUsuario,
@@ -114,6 +114,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         .read<AuthenticationService>()
                         .signUp(email: email.text, password: password1.text);
                     if (logMessage == "Signed Up") {
+                      createUserInFirestore();
                       Navigator.of(context).pushReplacement(
                           new MaterialPageRoute(
                               builder: (BuildContext context) =>
