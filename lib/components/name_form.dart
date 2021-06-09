@@ -6,8 +6,10 @@ class NameForm extends StatefulWidget {
   NameForm(
       {@required this.icono,
       @required this.labelhint,
-      @required this.controllertext});
+      @required this.controllertext,
+      this.init});
 
+  final String init;
   final IconData icono;
   final String labelhint;
   final TextEditingController controllertext;
@@ -23,21 +25,24 @@ class _NameFormState extends State<NameForm> {
     final screenWidth = MediaQuery.of(context).size.width;
     return Container(
       height: 70,
+      alignment: Alignment.center,
       width: screenWidth * 0.85,
       decoration: BoxDecoration(
           color: color.colorSecundario,
           borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
+        padding: const EdgeInsets.only(top: 30.0, left: 20, bottom: 16),
         child: TextFormField(
           controller: widget.controllertext,
           cursorColor: Colors.white,
+          maxLength: 20,
           style: GoogleFonts.montserrat(
               color: Colors.white, fontWeight: FontWeight.w400),
           keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
           decoration: InputDecoration(
               focusColor: Colors.white,
+              contentPadding: EdgeInsets.zero,
               hoverColor: Colors.white,
               fillColor: Colors.white,
               border: InputBorder.none,

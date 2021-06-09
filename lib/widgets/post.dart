@@ -65,14 +65,22 @@ class Post extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w500)),
-                  Text(userCar,
-                      style: GoogleFonts.montserrat(
-                          color: Colors.grey.shade600,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w400)),
+                  userCar.length < 20
+                      ? Text(userCar,
+                          style: GoogleFonts.montserrat(
+                              color: Colors.grey.shade600,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400))
+                      : Text(userCar.substring(0, 20) + "...",
+                          style: GoogleFonts.montserrat(
+                              color: Colors.grey.shade600,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400)),
                 ],
               ),
-              Expanded(child: SizedBox()),
+              Expanded(
+                child: SizedBox(),
+              ),
               canDelete
                   ? IconButton(
                       onPressed: () {

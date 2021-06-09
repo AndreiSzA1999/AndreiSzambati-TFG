@@ -1,3 +1,5 @@
+import 'package:aszcars_tfg_andrei/models/user.dart';
+
 import 'package:aszcars_tfg_andrei/screens/message_screen/messages_screen.dart';
 import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
 import 'package:aszcars_tfg_andrei/widgets/post.dart';
@@ -17,7 +19,9 @@ class PostsPage extends StatefulWidget {
 
 class _PostsPageState extends State<PostsPage> {
   List<Post> postsList = [];
-
+  UserModel user;
+  String _userName;
+  String _imageProfile;
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
@@ -94,12 +98,13 @@ class _PostsPageState extends State<PostsPage> {
                       );
                     } else {
                       postsList.clear();
-                      snapshot.data.docs.forEach((element) {
+                      snapshot.data.docs.forEach((element) async {
+                        getPostUser(element["uid"]);
                         postsList.add(Post(
                           comments: element["comments"],
-                          userName: element["username"],
+                          userName: _userName == null ? "" : _userName,
                           imageURL: element["imageLink"],
-                          profile: element["profileImage"],
+                          profile: _imageProfile == null ? "" : _imageProfile,
                           saved: false,
                           description: element["descripcion"],
                           userCar: element["usercar"],
@@ -122,5 +127,14 @@ class _PostsPageState extends State<PostsPage> {
         ),
       ),
     );
+  }
+
+  Future<void> getPostUser(String uidUser) async {
+    UserModel currentUser =
+        await context.read<AuthenticationService>().getUserFromDB(uid: uidUser);
+    setState(() {
+      _imageProfile = currentUser.profileimage;
+      _userName = currentUser.username;
+    });
   }
 }

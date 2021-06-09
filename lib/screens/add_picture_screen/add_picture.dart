@@ -24,8 +24,7 @@ class AddPicturePage extends StatefulWidget {
 class _AddPicturePageState extends State<AddPicturePage> {
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  String _profileImage;
-  String _userName;
+  String _uid;
 
   UserModel _currentUser;
   ColorsPalette color = ColorsPalette();
@@ -61,8 +60,7 @@ class _AddPicturePageState extends State<AddPicturePage> {
         .getUserFromDB(uid: auth.currentUser.uid);
     _currentUser = currentUser;
     setState(() {
-      _profileImage = _currentUser.profileimage;
-      _userName = _currentUser.username;
+      _uid = _currentUser.uid;
     });
   }
 
@@ -323,13 +321,12 @@ class _AddPicturePageState extends State<AddPicturePage> {
   Future<void> addPostToDB() async {
     final userRef = FirebaseFirestore.instance.collection("posts");
     final postModel = PostModel(
-        username: _userName,
+        uid: _uid,
         likes: 0,
         comments: 0,
         descripcion: descripcion.text,
         imageLink: imageUrl,
         usercar: car.text,
-        profileImage: _profileImage,
         timestamp: DateTime.now());
     await userRef.doc().set(postModel.toMap(postModel));
   }

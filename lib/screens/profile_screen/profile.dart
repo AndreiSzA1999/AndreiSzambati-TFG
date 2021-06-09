@@ -1,4 +1,6 @@
+import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:aszcars_tfg_andrei/models/user.dart';
+import 'package:aszcars_tfg_andrei/screens/edit_profile_screen/edit_profile_page.dart';
 import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
 import 'package:aszcars_tfg_andrei/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,11 +20,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   //Propiedades del usuario
 
-  String _backpicture;
   String _profileImage;
   String _userName;
-
   String _description;
+  String _uid;
   @override
   void initState() {
     super.initState();
@@ -40,7 +41,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _currentUser = currentUser;
 
     setState(() {
-      _backpicture = _currentUser.backimage;
       _profileImage = _currentUser.profileimage;
       _userName = _currentUser.username;
       _description = _currentUser.descripcion;
@@ -74,25 +74,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 width: screenWidth,
                 color: Colors.transparent,
               ),
-              _backpicture == null
-                  ? Container(
-                      height: screenHeight * 0.20,
-                      width: screenWidth,
-                      decoration: BoxDecoration(
-                          image: DecorationImage(
-                              image: AssetImage('assets/images/noback.png'),
-                              fit: BoxFit.cover)),
-                    )
-                  : Container(
-                      height: screenHeight * 0.20,
-                      width: screenWidth,
-                      decoration: BoxDecoration(
-                          image: DecorationImage(
-                              image: _backpicture == ""
-                                  ? AssetImage('assets/images/noback.png')
-                                  : NetworkImage(_backpicture),
-                              fit: BoxFit.cover)),
-                    ),
+              Container(
+                  height: screenHeight * 0.20,
+                  width: screenWidth,
+                  color: Colors.grey.shade900),
               Positioned(
                   top: screenHeight * 0.15,
                   child: Container(
@@ -103,6 +88,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         borderRadius: BorderRadius.circular(30)),
                   )),
               Positioned(
+                  left: screenWidth * 0.82,
+                  top: screenHeight * 0.18,
+                  child: IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(new MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                EditProfilePage()));
+                      },
+                      icon: Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                      ))),
+              Positioned(
                   left: screenWidth * 0.33,
                   right: screenWidth * 0.33,
                   top: screenHeight * 0.07,
@@ -112,7 +110,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           width: screenWidth * 0.34,
                           decoration: BoxDecoration(
                               image: DecorationImage(
-                                  image: AssetImage('assets/images/noback.png'),
+                                  image:
+                                      AssetImage('assets/images/noimage.png'),
                                   fit: BoxFit.cover),
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20)),
@@ -249,21 +248,19 @@ class _ProfilePageState extends State<ProfilePage> {
                                   Center(child: CircularProgressIndicator())));
                     } else {
                       postsList.clear();
-                      snapshot.data.docs.forEach((element) {
-                        if (element["username"] == _userName) {
-                          postsList.add(Post(
-                            comments: element["comments"],
-                            userName: element["username"],
-                            imageURL: element["imageLink"],
-                            profile: element["profileImage"],
-                            saved: false,
-                            description: element["descripcion"],
-                            userCar: element["usercar"],
-                            likes: element["likes"],
-                            canDelete: true,
-                            postDocument: element.id,
-                          ));
-                        }
+                      snapshot.data.docs.forEach((element) async {
+                        postsList.add(Post(
+                          comments: element["comments"],
+                          userName: _userName == null ? "" : _userName,
+                          imageURL: element["imageLink"],
+                          profile: _profileImage == null ? "" : _profileImage,
+                          saved: false,
+                          description: element["descripcion"],
+                          userCar: element["usercar"],
+                          likes: element["likes"],
+                          postDocument: element.id,
+                          canDelete: false,
+                        ));
                       });
                     }
                     return Positioned(
