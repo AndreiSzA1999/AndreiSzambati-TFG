@@ -63,7 +63,8 @@ class _SearchPageState extends State<SearchPage> {
                                 car.text = _withFilter[index];
                                 FocusScopeNode currentFocus =
                                     FocusScope.of(context);
-
+                                postsList.clear();
+                                getPostFromDB();
                                 if (!currentFocus.hasPrimaryFocus) {
                                   currentFocus.unfocus();
                                 }
@@ -248,9 +249,17 @@ class _SearchPageState extends State<SearchPage> {
           comments: datosPost.comments,
           likes: datosPost.likes,
         );
-        setState(() {
-          postsList.add(post);
-        });
+        if (car.text == "") {
+          setState(() {
+            postsList.add(post);
+          });
+        } else {
+          if (post.userCar == car.text) {
+            setState(() {
+              postsList.add(post);
+            });
+          }
+        }
       });
     });
   }
