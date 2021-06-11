@@ -74,9 +74,6 @@ class AuthenticationService {
   //4
   Future<UserModel> getUserFromDB({String uid}) async {
     final DocumentSnapshot doc = await userRef.doc(uid).get();
-
-    //print(doc.data());
-
     return UserModel.fromMap(doc.data());
   }
 

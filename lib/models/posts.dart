@@ -4,9 +4,9 @@ class PostModel {
   String descripcion;
   String imageLink;
   String usercar;
-
   DateTime timestamp;
   String uid;
+  String document;
 
   PostModel(
       {this.likes,
@@ -15,7 +15,8 @@ class PostModel {
       this.imageLink,
       this.usercar,
       this.timestamp,
-      this.uid});
+      this.uid,
+      this.document});
 
   Map toMap(PostModel post) {
     var data = Map<String, dynamic>();
@@ -31,9 +32,9 @@ class PostModel {
   }
 
   PostModel.fromMap(Map<String, dynamic> mapData) {
+    this.uid = mapData["uid"];
     this.likes = mapData["likes"];
     this.comments = mapData["comments"];
-
     this.descripcion = mapData["descripcion"];
     this.imageLink = mapData["imageLink"];
     this.usercar = mapData["usercar"];

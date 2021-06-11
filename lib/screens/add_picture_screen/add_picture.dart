@@ -38,7 +38,7 @@ class _AddPicturePageState extends State<AddPicturePage> {
 
   Future<void> _chooseImage() async {
     PickedFile pickedFile = await imagePicker.getImage(
-        source: ImageSource.gallery, imageQuality: 80);
+        source: ImageSource.gallery, imageQuality: 20);
     setState(() {
       _imagefile = File(pickedFile.path);
     });

@@ -1,9 +1,12 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
+import 'package:aszcars_tfg_andrei/models/posts.dart';
 import 'package:aszcars_tfg_andrei/models/user.dart';
+import 'package:aszcars_tfg_andrei/screens/detail_screen/detail_screen.dart';
 import 'package:aszcars_tfg_andrei/screens/edit_profile_screen/edit_profile_page.dart';
 import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
 import 'package:aszcars_tfg_andrei/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,49 +18,75 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  //Booleano para controlar los posts
   bool posts;
-  bool saved;
-
-  //Propiedades del usuario
-
-  String _profileImage;
-  String _userName;
-  String _description;
-  String _uid;
-  @override
-  void initState() {
-    super.initState();
-    getCurrentUser();
-    postsList.clear();
-    posts = true;
-    saved = false;
-  }
-
-  getCurrentUser() async {
-    UserModel currentUser = await context
-        .read<AuthenticationService>()
-        .getUserFromDB(uid: auth.currentUser.uid);
-
-    _currentUser = currentUser;
-
-    setState(() {
-      _profileImage = _currentUser.profileimage;
-      _userName = _currentUser.username;
-      _description = _currentUser.descripcion;
-    });
-  }
 
   //Obtenemos el usuario actual
-  FirebaseAuth auth = FirebaseAuth.instance;
+
   UserModel _currentUser;
 
   //Aqui cogemos y guardamos todos los posts que el usuario haya creado
   List<Post> postsList = [];
+  List<Post> savedList = [];
+  FirebaseAuth auth;
+  @override
+  void initState() {
+    auth = FirebaseAuth.instance;
 
-  //Aqui se guardarán todas las imagenes que el usuario haya creado
-  List<String> images = [];
+    getCurrentUser(auth.currentUser.uid);
+    posts = true;
+    super.initState();
+  }
 
-  //Auth service para poder desloguear
+  getCurrentUser(String uid) async {
+    print("Cogiendo usuario****************************");
+    UserModel currentUser =
+        await context.read<AuthenticationService>().getUserFromDB(uid: uid);
+    setState(() {
+      _currentUser = currentUser;
+    });
+    print("usuario cogido");
+
+    getPostFromDB();
+  }
+
+  @override
+  void dispose() {
+    postsList.clear();
+    print("posts borrados");
+    super.dispose();
+  }
+
+  Future<void> getPostFromDB() async {
+    print("añadinedo Posts");
+    FirebaseFirestore.instance
+        .collection("posts")
+        .orderBy("timestamp", descending: true)
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) {
+        final datosPost = PostModel.fromMap(result.data());
+        Post post = Post(
+          canDelete: true,
+          userCar: datosPost.usercar,
+          description: datosPost.descripcion,
+          imageURL: datosPost.imageLink,
+          profile: _currentUser.profileimage,
+          postDocument: result.id,
+          saved: false,
+          userName: _currentUser.username,
+          comments: datosPost.comments,
+          likes: datosPost.likes,
+        );
+
+        if (datosPost.uid == _currentUser.uid) {
+          setState(() {
+            postsList.add(post);
+          });
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,243 +95,273 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return SafeArea(
       child: Scaffold(
-          backgroundColor: Colors.black,
-          body: Stack(
-            children: [
-              Container(
-                height: screenHeight,
-                width: screenWidth,
-                color: Colors.transparent,
-              ),
-              Container(
-                  height: screenHeight * 0.20,
-                  width: screenWidth,
-                  color: Colors.grey.shade900),
-              Positioned(
-                  top: screenHeight * 0.15,
-                  child: Container(
-                    height: screenHeight * 0.70,
+        backgroundColor: Colors.black,
+        body: _currentUser != null
+            ? Stack(
+                children: [
+                  Container(
+                    height: screenHeight,
                     width: screenWidth,
-                    decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(30)),
-                  )),
-              Positioned(
-                  left: screenWidth * 0.82,
-                  top: screenHeight * 0.18,
-                  child: IconButton(
-                      onPressed: () {
-                        Navigator.of(context).push(new MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                EditProfilePage()));
-                      },
-                      icon: Icon(
-                        Icons.edit,
-                        color: Colors.white,
-                      ))),
-              Positioned(
-                  left: screenWidth * 0.33,
-                  right: screenWidth * 0.33,
-                  top: screenHeight * 0.07,
-                  child: _profileImage == null
-                      ? Container(
-                          height: screenWidth * 0.34,
-                          width: screenWidth * 0.34,
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image:
-                                      AssetImage('assets/images/noimage.png'),
-                                  fit: BoxFit.cover),
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20)),
-                        )
-                      : Container(
-                          height: screenWidth * 0.34,
-                          width: screenWidth * 0.34,
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: _profileImage == ""
-                                      ? AssetImage('assets/images/noimage.png')
-                                      : NetworkImage(_profileImage),
-                                  fit: BoxFit.cover),
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20)),
-                        )),
-              Positioned(
-                  top: screenHeight * 0.25,
-                  right: 0,
-                  left: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _userName == null
-                          ? Text("",
-                              style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w500))
-                          : Text("$_userName",
-                              style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w500))
-                    ],
-                  )),
-              Positioned(
-                top: screenHeight * 0.31,
-                child: Container(
-                  width: screenWidth,
-                  child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: _description == null
-                          ? Text(
-                              "",
-                              style: GoogleFonts.montserrat(
-                                  color: Colors.white, fontSize: 13),
-                              textAlign: TextAlign.center,
-                            )
-                          : Text(
-                              "$_description",
-                              style: GoogleFonts.montserrat(
-                                  color: Colors.white, fontSize: 13),
-                              textAlign: TextAlign.center,
-                            )),
-                ),
-              ),
-              Positioned(
-                top: screenHeight * 0.36,
-                right: 10,
-                left: 10,
-                child: Container(
-                  height: 50,
-                  width: screenWidth,
-                  decoration: BoxDecoration(
-                      color: Colors.grey.shade900,
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            saved = false;
-                            posts = true;
-                          });
-                        },
-                        child: AnimatedContainer(
-                            width: screenWidth * 0.47,
-                            height: 48,
-                            decoration: BoxDecoration(
-                                color:
-                                    posts ? Colors.white : Colors.grey.shade900,
-                                borderRadius: BorderRadius.circular(20)),
-                            duration: Duration(milliseconds: 300),
-                            child: Center(
-                                child: Text("POSTS",
-                                    style: GoogleFonts.montserrat(
-                                        color:
-                                            posts ? Colors.black : Colors.white,
-                                        fontWeight: FontWeight.w500)))),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            saved = true;
-                            posts = false;
-                          });
-                        },
-                        child: AnimatedContainer(
-                          width: screenWidth * 0.47,
-                          height: 48,
-                          duration: Duration(milliseconds: 300),
-                          decoration: BoxDecoration(
-                              color:
-                                  saved ? Colors.white : Colors.grey.shade900,
-                              borderRadius: BorderRadius.circular(20)),
-                          child: Center(
-                              child: Text("GRID",
-                                  style: GoogleFonts.montserrat(
-                                      color:
-                                          saved ? Colors.black : Colors.white,
-                                      fontWeight: FontWeight.w500))),
-                        ),
-                      ),
-                    ],
+                    color: Colors.black,
                   ),
-                ),
-              ),
-              StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection("posts")
-                      .snapshots(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (!snapshot.hasData) {
-                      Positioned(
-                          top: screenHeight * 0.53,
-                          child: Container(
-                              height: screenHeight * 0.4,
-                              width: screenWidth,
-                              color: Colors.black,
-                              child:
-                                  Center(child: CircularProgressIndicator())));
-                    } else {
-                      postsList.clear();
-                      snapshot.data.docs.forEach((element) async {
-                        postsList.add(Post(
-                          comments: element["comments"],
-                          userName: _userName == null ? "" : _userName,
-                          imageURL: element["imageLink"],
-                          profile: _profileImage == null ? "" : _profileImage,
-                          saved: false,
-                          description: element["descripcion"],
-                          userCar: element["usercar"],
-                          likes: element["likes"],
-                          postDocument: element.id,
-                          canDelete: false,
-                        ));
-                      });
-                    }
-                    return Positioned(
-                        top: screenHeight * 0.43,
-                        child: Container(
-                            height: screenHeight * 0.45,
-                            width: screenWidth,
-                            color: Colors.black,
-                            child: posts
-                                ? ListView.builder(
-                                    physics: AlwaysScrollableScrollPhysics(
-                                        parent: BouncingScrollPhysics()),
-                                    itemCount: postsList.length,
-                                    itemBuilder: (context, index) {
-                                      return postsList[index];
-                                    })
-                                : Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: GridView.builder(
-                                        itemCount: postsList.length,
-                                        gridDelegate:
-                                            SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount: 3,
-                                                crossAxisSpacing: 0,
-                                                mainAxisSpacing: 0),
-                                        itemBuilder: (context, index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(1.0),
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                  image: DecorationImage(
-                                                      image: NetworkImage(
-                                                          postsList[index]
-                                                              .imageURL),
-                                                      fit: BoxFit.cover)),
-                                            ),
-                                          );
-                                        }),
-                                  )));
-                  })
-            ],
-          )),
+                  profileImage(screenWidth, screenHeight),
+                  userName(screenHeight, screenWidth),
+                  userDescription(screenHeight, screenWidth),
+                  botonEditarPerfil(screenHeight, screenWidth, context),
+                  Positioned(
+                    top: screenHeight * 0.30,
+                    right: 10,
+                    left: 10,
+                    child: Container(
+                      height: 50,
+                      width: screenWidth,
+                      decoration: BoxDecoration(
+                          color: Colors.grey.shade900,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          tabPosts(screenWidth),
+                          tabSaved(screenWidth),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                      top: screenHeight * 0.37,
+                      child: Container(
+                          height: screenHeight * 0.45,
+                          width: screenWidth,
+                          color: Colors.black,
+                          child: posts ? gridOwnPosts() : gridSaved())),
+                ],
+              )
+            : Center(child: CircularProgressIndicator()),
+      ),
     );
+  }
+
+  Positioned botonEditarPerfil(
+      double screenHeight, double screenWidth, BuildContext context) {
+    return Positioned(
+      top: screenHeight * 0.1,
+      left: screenWidth * 0.42,
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(new MaterialPageRoute(
+              builder: (BuildContext context) => EditProfilePage()));
+        },
+        child: Container(
+          height: 50,
+          width: screenWidth * 0.5,
+          decoration: BoxDecoration(
+              color: ColorsPalette().colorBoton,
+              borderRadius: BorderRadius.circular(20)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Editar Perfil",
+                style: GoogleFonts.montserrat(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  GestureDetector tabPosts(double screenWidth) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          posts = !posts;
+        });
+      },
+      child: AnimatedContainer(
+          width: screenWidth * 0.47,
+          height: 48,
+          decoration: BoxDecoration(
+              color: posts ? Colors.white : Colors.grey.shade900,
+              borderRadius: BorderRadius.circular(20)),
+          duration: Duration(milliseconds: 300),
+          child: Center(
+              child: Text("POSTS",
+                  style: GoogleFonts.montserrat(
+                      color: posts ? Colors.black : Colors.white,
+                      fontWeight: FontWeight.w500)))),
+    );
+  }
+
+  GestureDetector tabSaved(double screenWidth) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          posts = !posts;
+        });
+      },
+      child: AnimatedContainer(
+        width: screenWidth * 0.47,
+        height: 48,
+        duration: Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+            color: !posts ? Colors.white : Colors.grey.shade900,
+            borderRadius: BorderRadius.circular(20)),
+        child: Center(
+            child: Text("SAVED",
+                style: GoogleFonts.montserrat(
+                    color: !posts ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.w500))),
+      ),
+    );
+  }
+
+  Padding gridOwnPosts() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0, left: 10, right: 10),
+      child: postsList.length != 0
+          ? GridView.builder(
+              itemCount: postsList.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3, crossAxisSpacing: 0, mainAxisSpacing: 0),
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              PostDetailedPage(postsList[index])),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: NetworkImage(postsList[index].imageURL),
+                              fit: BoxFit.cover)),
+                    ),
+                  ),
+                );
+              })
+          : Center(
+              child: Text(
+              "No hay posts subidos.",
+              style: GoogleFonts.montserrat(color: Colors.white, fontSize: 15),
+              textAlign: TextAlign.left,
+            )),
+    );
+  }
+
+  Padding gridSaved() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0, left: 10, right: 10),
+      child: savedList.length != 0
+          ? GridView.builder(
+              itemCount: postsList.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3, crossAxisSpacing: 0, mainAxisSpacing: 0),
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                            image: NetworkImage(
+                                //TODO -> Hacer posts guardados cuando este la lista
+                                "https://images.unsplash.com/photo-1621412989559-92f76025ad0d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=634&q=80"),
+                            fit: BoxFit.cover)),
+                  ),
+                );
+              })
+          : Center(
+              child: Text(
+              "No hay posts guardados.",
+              style: GoogleFonts.montserrat(color: Colors.white, fontSize: 15),
+              textAlign: TextAlign.left,
+            )),
+    );
+  }
+
+  Positioned userDescription(double screenHeight, double screenWidth) {
+    return Positioned(
+      top: screenHeight * 0.21,
+      child: Container(
+        width: screenWidth,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: _currentUser.descripcion == null
+                ? Text(
+                    "",
+                    style: GoogleFonts.montserrat(
+                        color: Colors.white, fontSize: 13),
+                    textAlign: TextAlign.justify,
+                  )
+                : Text(
+                    "${_currentUser.descripcion}",
+                    style: GoogleFonts.montserrat(
+                        color: Colors.white, fontSize: 15),
+                    textAlign: TextAlign.left,
+                  )),
+      ),
+    );
+  }
+
+  Positioned userName(double screenHeight, double screenWidth) {
+    return Positioned(
+        top: screenHeight * 0.05,
+        left: screenWidth * 0.43,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _currentUser.username == null
+                ? Text("",
+                    style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w500))
+                : Text("${_currentUser.username}",
+                    style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500))
+          ],
+        ));
+  }
+
+  Positioned profileImage(double screenWidth, double screenHeight) {
+    return Positioned(
+        left: screenWidth * 0.05,
+        top: screenHeight * 0.03,
+        child: _currentUser.profileimage == null
+            ? Container(
+                height: screenWidth * 0.34,
+                width: screenWidth * 0.34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      image: AssetImage('assets/images/noimage.png'),
+                      fit: BoxFit.cover),
+                  color: Colors.white,
+                ),
+              )
+            : Container(
+                height: screenWidth * 0.34,
+                width: screenWidth * 0.34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade800, width: 2),
+                  image: DecorationImage(
+                      image: _currentUser.profileimage == ""
+                          ? AssetImage('assets/images/noimage.png')
+                          : NetworkImage(_currentUser.profileimage),
+                      fit: BoxFit.cover),
+                  color: Colors.white,
+                ),
+              ));
   }
 }

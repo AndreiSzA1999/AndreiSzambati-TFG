@@ -1,10 +1,9 @@
+import 'package:aszcars_tfg_andrei/models/posts.dart';
 import 'package:aszcars_tfg_andrei/models/user.dart';
-
 import 'package:aszcars_tfg_andrei/screens/message_screen/messages_screen.dart';
 import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
 import 'package:aszcars_tfg_andrei/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_icons/flutter_icons.dart';
@@ -19,109 +18,59 @@ class PostsPage extends StatefulWidget {
 
 class _PostsPageState extends State<PostsPage> {
   List<Post> postsList = [];
-  UserModel user;
-  String _userName;
-  String _imageProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    getPostFromDB();
+  }
+
+  Future<UserModel> getCurrentUser(String uid) async {
+    print("Cogiendo usuario****************************");
+    UserModel currentUser =
+        await context.read<AuthenticationService>().getUserFromDB(uid: uid);
+    print("usuario cogido");
+    return currentUser;
+  }
+
+  Future<void> getPostFromDB() async {
+    FirebaseFirestore.instance
+        .collection("posts")
+        .orderBy("timestamp", descending: true)
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        final datosPost = PostModel.fromMap(result.data());
+        UserModel usuario = await getCurrentUser(datosPost.uid);
+        Post post = Post(
+          canDelete: false,
+          userCar: datosPost.usercar,
+          description: datosPost.descripcion,
+          imageURL: datosPost.imageLink,
+          profile: usuario.profileimage,
+          postDocument: result.id,
+          saved: false,
+          userName: usuario.username,
+          comments: datosPost.comments,
+          likes: datosPost.likes,
+        );
+        setState(() {
+          postsList.add(post);
+        });
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    var screenWidth = MediaQuery.of(context).size.width;
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
         body: Column(
           children: [
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              height: 60,
-              width: screenWidth,
-              color: Colors.black,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                      onTap: () async {
-                        //Metodo para salir de la aplicación
-                        final singedOut = await context
-                            .read<AuthenticationService>()
-                            .signOut();
-                        if (singedOut == "Singed out") {
-                          Navigator.of(context).pushReplacement(
-                              new MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      AuthenticationWrapper()));
-                        }
-                      },
-                      child: Icon(
-                        Icons.exit_to_app,
-                        color: Colors.white,
-                        size: 30,
-                      )),
-                  Text(
-                    "ASZCARS",
-                    style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 20),
-                  ),
-                  IconButton(
-                      splashColor: Colors.black,
-                      icon: Icon(
-                        Ionicons.ios_paper_plane,
-                        color: Colors.white,
-                        size: 25,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MessagesPage()),
-                        );
-                      }),
-                ],
-              ),
-            ),
+            AppBar(),
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection("posts")
-                      .orderBy("timestamp", descending: true)
-                      .snapshots(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (!snapshot.hasData) {
-                      return Expanded(
-                        child: Container(
-                            width: screenWidth,
-                            color: Colors.black,
-                            child: Center(child: CircularProgressIndicator())),
-                      );
-                    } else {
-                      postsList.clear();
-                      snapshot.data.docs.forEach((element) async {
-                        getPostUser(element["uid"]);
-                        postsList.add(Post(
-                          comments: element["comments"],
-                          userName: _userName == null ? "" : _userName,
-                          imageURL: element["imageLink"],
-                          profile: _imageProfile == null ? "" : _imageProfile,
-                          saved: false,
-                          description: element["descripcion"],
-                          userCar: element["usercar"],
-                          likes: element["likes"],
-                          postDocument: element.id,
-                          canDelete: false,
-                        ));
-                      });
-                      return ListView.builder(
-                          physics: AlwaysScrollableScrollPhysics(
-                              parent: BouncingScrollPhysics()),
-                          itemCount: postsList.length,
-                          itemBuilder: (context, index) {
-                            return postsList[index];
-                          });
-                    }
-                  }),
+              child: listaPosts(),
             ),
           ],
         ),
@@ -129,12 +78,65 @@ class _PostsPageState extends State<PostsPage> {
     );
   }
 
-  Future<void> getPostUser(String uidUser) async {
-    UserModel currentUser =
-        await context.read<AuthenticationService>().getUserFromDB(uid: uidUser);
-    setState(() {
-      _imageProfile = currentUser.profileimage;
-      _userName = currentUser.username;
-    });
+  ListView listaPosts() {
+    return ListView.builder(
+        physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        itemCount: postsList.length,
+        itemBuilder: (context, index) {
+          return postsList[index];
+        });
+  }
+}
+
+class AppBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 10),
+      height: 60,
+      width: screenWidth,
+      color: Colors.black,
+      /*APP BAR */
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+              onTap: () async {
+                //Metodo para salir de la aplicación
+                final singedOut =
+                    await context.read<AuthenticationService>().signOut();
+                if (singedOut == "Singed out") {
+                  Navigator.of(context).pushReplacement(new MaterialPageRoute(
+                      builder: (BuildContext context) =>
+                          AuthenticationWrapper()));
+                }
+              },
+              child: Icon(
+                Icons.exit_to_app,
+                color: Colors.white,
+                size: 30,
+              )),
+          Text(
+            "ASZCARS",
+            style: GoogleFonts.montserrat(
+                color: Colors.white, fontWeight: FontWeight.w500, fontSize: 20),
+          ),
+          IconButton(
+              splashColor: Colors.black,
+              icon: Icon(
+                Ionicons.ios_paper_plane,
+                color: Colors.white,
+                size: 25,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MessagesPage()),
+                );
+              }),
+        ],
+      ),
+    );
   }
 }

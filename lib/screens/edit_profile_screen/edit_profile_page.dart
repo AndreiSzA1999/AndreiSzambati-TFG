@@ -56,7 +56,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _chooseImage() async {
     PickedFile pickedFile = await imagePicker.getImage(
-        source: ImageSource.gallery, imageQuality: 50);
+        source: ImageSource.gallery, imageQuality: 10);
     setState(() {
       _imagefile = File(pickedFile.path);
     });

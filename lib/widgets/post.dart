@@ -39,8 +39,17 @@ class Post extends StatelessWidget {
       margin: EdgeInsets.all(10),
       width: screenWidth * 0.9,
       decoration: BoxDecoration(
-          color: color.colorSecundario,
-          borderRadius: BorderRadius.circular(20)),
+        color: color.colorSecundario,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 7,
+            offset: Offset(0, 3), // changes position of shadow
+          ),
+        ],
+      ),
       child: Column(
         children: [
           SizedBox(
