@@ -19,7 +19,6 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   String _profileImage;
-  String _nombreUsuario;
   String _description;
   String _newProfileImage;
   String _error = "";
@@ -38,7 +37,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _currentUser = currentUser;
     setState(() {
       _profileImage = _currentUser.profileimage;
-      _nombreUsuario = _currentUser.username;
       _description = _currentUser.descripcion;
     });
   }
