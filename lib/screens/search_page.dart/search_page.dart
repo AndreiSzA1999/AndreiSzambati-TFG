@@ -238,6 +238,7 @@ class _SearchPageState extends State<SearchPage> {
         final datosPost = PostModel.fromMap(result.data());
         UserModel usuario = await getCurrentUser(datosPost.uid);
         Post post = Post(
+          userUid: usuario.uid,
           canDelete: false,
           userCar: datosPost.usercar,
           description: datosPost.descripcion,

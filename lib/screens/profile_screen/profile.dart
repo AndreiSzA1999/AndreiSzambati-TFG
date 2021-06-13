@@ -1,5 +1,6 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:aszcars_tfg_andrei/models/posts.dart';
+import 'package:aszcars_tfg_andrei/models/savedPostmodel.dart';
 import 'package:aszcars_tfg_andrei/models/user.dart';
 import 'package:aszcars_tfg_andrei/screens/detail_screen/detail_screen.dart';
 import 'package:aszcars_tfg_andrei/screens/edit_profile_screen/edit_profile_page.dart';
@@ -39,13 +40,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   getCurrentUser(String uid) async {
-    print("Cogiendo usuario****************************");
     UserModel currentUser =
         await context.read<AuthenticationService>().getUserFromDB(uid: uid);
     setState(() {
       _currentUser = currentUser;
     });
-    print("usuario cogido");
 
     getPostFromDB();
   }
@@ -53,12 +52,10 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void dispose() {
     postsList.clear();
-    print("posts borrados");
     super.dispose();
   }
 
   Future<void> getPostFromDB() async {
-    print("añadinedo Posts");
     FirebaseFirestore.instance
         .collection("posts")
         .orderBy("timestamp", descending: true)
@@ -67,6 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
       querySnapshot.docs.forEach((result) {
         final datosPost = PostModel.fromMap(result.data());
         Post post = Post(
+          userUid: _currentUser.uid,
           canDelete: true,
           userCar: datosPost.usercar,
           description: datosPost.descripcion,
@@ -82,6 +80,39 @@ class _ProfilePageState extends State<ProfilePage> {
         if (datosPost.uid == _currentUser.uid) {
           setState(() {
             postsList.add(post);
+          });
+        }
+      });
+    });
+
+    getSavedFromDB();
+  }
+
+  Future<void> getSavedFromDB() async {
+    FirebaseFirestore.instance
+        .collection("saved")
+        .orderBy("timestamp", descending: true)
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) {
+        final datosPost = SavedPostModel.fromMap(result.data());
+        Post post = Post(
+          userUid: _currentUser.uid,
+          canDelete: datosPost.uid == auth.currentUser.uid ? true : false,
+          userCar: datosPost.usercar,
+          description: datosPost.descripcion,
+          imageURL: datosPost.imageLink,
+          profile: _currentUser.profileimage,
+          postDocument: result.id,
+          saved: true,
+          userName: _currentUser.username,
+          comments: datosPost.comments,
+          likes: datosPost.likes,
+        );
+        print(datosPost.userWhoSaved);
+        if (datosPost.userWhoSaved == _currentUser.uid) {
+          setState(() {
+            savedList.add(post);
           });
         }
       });
@@ -262,19 +293,27 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.only(top: 10.0, left: 10, right: 10),
       child: savedList.length != 0
           ? GridView.builder(
-              itemCount: postsList.length,
+              itemCount: savedList.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3, crossAxisSpacing: 0, mainAxisSpacing: 0),
               itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        image: DecorationImage(
-                            image: NetworkImage(
-                                //TODO -> Hacer posts guardados cuando este la lista
-                                "https://images.unsplash.com/photo-1621412989559-92f76025ad0d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=634&q=80"),
-                            fit: BoxFit.cover)),
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              PostDetailedPage(savedList[index])),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: NetworkImage(savedList[index].imageURL),
+                              fit: BoxFit.cover)),
+                    ),
                   ),
                 );
               })

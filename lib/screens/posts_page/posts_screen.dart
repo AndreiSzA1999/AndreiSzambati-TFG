@@ -1,9 +1,11 @@
 import 'package:aszcars_tfg_andrei/models/posts.dart';
+import 'package:aszcars_tfg_andrei/models/savedPostmodel.dart';
 import 'package:aszcars_tfg_andrei/models/user.dart';
 import 'package:aszcars_tfg_andrei/screens/message_screen/messages_screen.dart';
 import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
 import 'package:aszcars_tfg_andrei/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_icons/flutter_icons.dart';
@@ -18,22 +20,35 @@ class PostsPage extends StatefulWidget {
 
 class _PostsPageState extends State<PostsPage> {
   List<Post> postsList = [];
-
+  FirebaseAuth auth;
   @override
   void initState() {
+    auth = FirebaseAuth.instance;
     super.initState();
     getPostFromDB();
   }
 
   Future<UserModel> getCurrentUser(String uid) async {
-    print("Cogiendo usuario****************************");
     UserModel currentUser =
         await context.read<AuthenticationService>().getUserFromDB(uid: uid);
-    print("usuario cogido");
     return currentUser;
   }
 
   Future<void> getPostFromDB() async {
+    List<String> postsSavedByCurrentUser = [];
+
+    FirebaseFirestore.instance.collection("saved").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        final datosPost = SavedPostModel.fromMap(result.data());
+
+        if (datosPost.userWhoSaved == auth.currentUser.uid) {
+          setState(() {
+            postsSavedByCurrentUser.add(datosPost.postDocument);
+          });
+        }
+      });
+    });
+
     FirebaseFirestore.instance
         .collection("posts")
         .orderBy("timestamp", descending: true)
@@ -43,13 +58,14 @@ class _PostsPageState extends State<PostsPage> {
         final datosPost = PostModel.fromMap(result.data());
         UserModel usuario = await getCurrentUser(datosPost.uid);
         Post post = Post(
+          userUid: usuario.uid,
           canDelete: false,
           userCar: datosPost.usercar,
           description: datosPost.descripcion,
           imageURL: datosPost.imageLink,
           profile: usuario.profileimage,
           postDocument: result.id,
-          saved: false,
+          saved: postsSavedByCurrentUser.contains(result.id) ? true : false,
           userName: usuario.username,
           comments: datosPost.comments,
           likes: datosPost.likes,

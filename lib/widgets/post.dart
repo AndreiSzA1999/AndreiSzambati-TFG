@@ -1,25 +1,30 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
+import 'package:aszcars_tfg_andrei/models/savedPostmodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 
-class Post extends StatelessWidget {
+// ignore: must_be_immutable
+class Post extends StatefulWidget {
   final String userName;
   final String userCar;
   final String description;
   final String imageURL;
-  final int likes;
-  final int comments;
-  final bool saved;
+  int likes;
+  int comments;
+  bool saved;
   final String profile;
   final String postDocument;
   final bool canDelete;
+  final String userUid;
 
   Post(
-      {@required this.userName,
+      {@required this.userUid,
+      @required this.userName,
       @required this.userCar,
       @required this.description,
       @required this.imageURL,
@@ -30,6 +35,11 @@ class Post extends StatelessWidget {
       @required this.postDocument,
       @required this.canDelete});
 
+  @override
+  _PostState createState() => _PostState();
+}
+
+class _PostState extends State<Post> {
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
@@ -62,25 +72,26 @@ class Post extends StatelessWidget {
               ),
               CircleAvatar(
                   radius: 20,
-                  backgroundImage: profile == null || profile.isEmpty
-                      ? AssetImage("assets/images/noimage.png")
-                      : NetworkImage(profile)),
+                  backgroundImage:
+                      widget.profile == null || widget.profile.isEmpty
+                          ? AssetImage("assets/images/noimage.png")
+                          : NetworkImage(widget.profile)),
               SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(userName,
+                  Text(widget.userName,
                       style: GoogleFonts.montserrat(
                           color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w500)),
-                  userCar.length < 20
-                      ? Text(userCar,
+                  widget.userCar.length < 20
+                      ? Text(widget.userCar,
                           style: GoogleFonts.montserrat(
                               color: Colors.grey.shade600,
                               fontSize: 15,
                               fontWeight: FontWeight.w400))
-                      : Text(userCar.substring(0, 20) + "...",
+                      : Text(widget.userCar.substring(0, 20) + "...",
                           style: GoogleFonts.montserrat(
                               color: Colors.grey.shade600,
                               fontSize: 15,
@@ -90,7 +101,7 @@ class Post extends StatelessWidget {
               Expanded(
                 child: SizedBox(),
               ),
-              canDelete
+              widget.canDelete
                   ? IconButton(
                       onPressed: () {
                         showDialog(
@@ -104,7 +115,7 @@ class Post extends StatelessWidget {
                                       onPressed: () {
                                         FirebaseFirestore.instance
                                             .collection("posts")
-                                            .doc(postDocument)
+                                            .doc(widget.postDocument)
                                             .delete();
                                         Navigator.of(context).pop();
                                       },
@@ -134,7 +145,7 @@ class Post extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
               child: Text(
-                description,
+                widget.description,
                 textAlign: TextAlign.start,
                 style: GoogleFonts.montserrat(
                   color: Colors.white,
@@ -150,7 +161,7 @@ class Post extends StatelessWidget {
               decoration: BoxDecoration(
                   image: DecorationImage(
                       image: NetworkImage(
-                        imageURL,
+                        widget.imageURL,
                       ),
                       fit: BoxFit.cover))),
           Row(
@@ -160,7 +171,7 @@ class Post extends StatelessWidget {
                     size: 20, color: Colors.white),
                 onPressed: () {},
               ),
-              Text("$likes",
+              Text("${widget.likes}",
                   style: GoogleFonts.montserrat(
                       color: Colors.grey.shade400,
                       fontWeight: FontWeight.w500)),
@@ -170,7 +181,7 @@ class Post extends StatelessWidget {
                     size: 20, color: Colors.white),
                 onPressed: () {},
               ),
-              Text("$comments",
+              Text("${widget.comments}",
                   style: GoogleFonts.montserrat(
                       color: Colors.grey.shade400,
                       fontWeight: FontWeight.w500)),
@@ -185,17 +196,61 @@ class Post extends StatelessWidget {
               ),
               IconButton(
                 splashColor: Colors.black,
-                icon: !saved
+                icon: !widget.saved
                     ? FaIcon(FontAwesomeIcons.bookmark,
                         size: 20, color: Colors.white)
                     : FaIcon(FontAwesomeIcons.solidBookmark,
                         size: 20, color: Colors.white),
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    widget.saved = !widget.saved;
+                    if (widget.saved) {
+                      addPostToDB();
+                    } else {
+                      deletePostFromDB();
+                    }
+                  });
+                },
               ),
             ],
           )
         ],
       ),
     );
+  }
+
+  Future<void> addPostToDB() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    final userRef = FirebaseFirestore.instance.collection("saved");
+    final postModel = SavedPostModel(
+        userWhoSaved: auth.currentUser.uid,
+        uid: widget.userUid,
+        likes: widget.likes,
+        comments: widget.comments,
+        descripcion: widget.description,
+        imageLink: widget.imageURL,
+        usercar: widget.userCar,
+        timestamp: DateTime.now(),
+        postDocument: widget.postDocument);
+    await userRef.doc().set(postModel.toMap(postModel));
+  }
+
+  Future<void> deletePostFromDB() async {
+    String docToDelete;
+    await FirebaseFirestore.instance
+        .collection("saved")
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        print(result["postDocument"] + " ------------>" + widget.postDocument);
+        if (result["postDocument"] == widget.postDocument) {
+          setState(() {
+            docToDelete = result.id;
+          });
+        }
+      });
+    });
+    print(docToDelete);
+    FirebaseFirestore.instance.collection("saved").doc(docToDelete).delete();
   }
 }

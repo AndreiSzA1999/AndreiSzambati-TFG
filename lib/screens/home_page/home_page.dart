@@ -1,5 +1,5 @@
 import 'package:aszcars_tfg_andrei/screens/add_picture_screen/add_picture.dart';
-import 'package:aszcars_tfg_andrei/screens/fuel_page/fuel_page.dart';
+
 import 'package:aszcars_tfg_andrei/screens/posts_page/posts_screen.dart';
 import 'package:aszcars_tfg_andrei/screens/profile_screen/profile.dart';
 import 'package:aszcars_tfg_andrei/screens/search_page.dart/search_page.dart';
@@ -16,7 +16,6 @@ class _HomeState extends State<Home> {
   final List<Widget> screens = [
     PostsPage(),
     SearchPage(),
-    FuelPage(),
     ProfilePage(),
     AddPicturePage(),
   ];
@@ -91,23 +90,6 @@ class _HomeState extends State<Home> {
                       Icon(Ionicons.ios_add,
                           size: 50,
                           color: currentTab == 4 ? Colors.white : Colors.grey),
-                    ],
-                  ),
-                ),
-                MaterialButton(
-                  minWidth: 10,
-                  onPressed: () {
-                    setState(() {
-                      currentScreen = FuelPage();
-                      currentTab = 2;
-                    });
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Ionicons.md_car,
-                          size: currentTab == 2 ? 35 : 30,
-                          color: currentTab == 2 ? Colors.white : Colors.grey),
                     ],
                   ),
                 ),
