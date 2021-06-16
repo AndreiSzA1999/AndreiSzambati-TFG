@@ -36,6 +36,7 @@ class Mensaje extends StatelessWidget {
                 color: Colors.white, fontWeight: FontWeight.w300, fontSize: 10),
           ),
           Post(
+            liked: false,
             userName: "AndreiSzA",
             userCar: "Wolkswagen Golf R",
             description:

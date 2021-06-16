@@ -49,30 +49,65 @@ class _ProfilePageState extends State<ProfilePage> {
     getPostFromDB();
   }
 
+  Future<UserModel> getUserFromPost(String uid) async {
+    UserModel currentUser =
+        await context.read<AuthenticationService>().getUserFromDB(uid: uid);
+
+    return currentUser;
+  }
+
   @override
   void dispose() {
     postsList.clear();
+    savedList.clear();
     super.dispose();
   }
 
   Future<void> getPostFromDB() async {
+    List<String> postsSavedByCurrentUser = [];
+    List<String> postsLikedByCurrentUser = [];
+    FirebaseFirestore.instance.collection("saved").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        final datosPost = SavedPostModel.fromMap(result.data());
+
+        if (datosPost.userWhoSaved == _currentUser.uid) {
+          setState(() {
+            postsSavedByCurrentUser.add(datosPost.postDocument);
+          });
+        }
+      });
+    });
+
+    FirebaseFirestore.instance.collection("likes").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        if (result["userWhoLikedUid"] == _currentUser.uid) {
+          setState(() {
+            postsLikedByCurrentUser.add(result["postDoc"]);
+          });
+        }
+      });
+    });
+
     FirebaseFirestore.instance
         .collection("posts")
         .orderBy("timestamp", descending: true)
         .get()
         .then((querySnapshot) {
-      querySnapshot.docs.forEach((result) {
+      querySnapshot.docs.forEach((result) async {
         final datosPost = PostModel.fromMap(result.data());
+        UserModel usuario = await getUserFromPost(datosPost.uid);
+
         Post post = Post(
+          liked: postsLikedByCurrentUser.contains(result.id) ? true : false,
           userUid: _currentUser.uid,
           canDelete: true,
           userCar: datosPost.usercar,
           description: datosPost.descripcion,
           imageURL: datosPost.imageLink,
-          profile: _currentUser.profileimage,
+          profile: usuario.profileimage,
           postDocument: result.id,
-          saved: false,
-          userName: _currentUser.username,
+          saved: postsSavedByCurrentUser.contains(result.id) ? true : false,
+          userName: usuario.username,
           comments: datosPost.comments,
           likes: datosPost.likes,
         );
@@ -84,33 +119,63 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       });
     });
-
     getSavedFromDB();
   }
 
   Future<void> getSavedFromDB() async {
+    List<String> postsSavedByCurrentUser = [];
+    List<String> postsLikedByCurrentUser = [];
+    FirebaseFirestore.instance.collection("saved").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        final datosPost = SavedPostModel.fromMap(result.data());
+
+        if (datosPost.userWhoSaved == _currentUser.uid) {
+          setState(() {
+            postsSavedByCurrentUser.add(datosPost.postDocument);
+          });
+        }
+      });
+    });
+
+    await FirebaseFirestore.instance
+        .collection("likes")
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        if (result["userWhoLikedUid"] == _currentUser.uid) {
+          setState(() {
+            postsLikedByCurrentUser.add(result["postDoc"]);
+          });
+        }
+      });
+    });
+
     FirebaseFirestore.instance
         .collection("saved")
         .orderBy("timestamp", descending: true)
         .get()
         .then((querySnapshot) {
-      querySnapshot.docs.forEach((result) {
+      querySnapshot.docs.forEach((result) async {
         final datosPost = SavedPostModel.fromMap(result.data());
+        UserModel usuario = await getUserFromPost(datosPost.uid);
         Post post = Post(
-          userUid: _currentUser.uid,
-          canDelete: datosPost.uid == auth.currentUser.uid ? true : false,
+          liked: postsLikedByCurrentUser.contains(result["postDocument"])
+              ? true
+              : false,
+          userUid: usuario.uid,
+          canDelete: false,
           userCar: datosPost.usercar,
           description: datosPost.descripcion,
           imageURL: datosPost.imageLink,
-          profile: _currentUser.profileimage,
+          profile: usuario.profileimage,
           postDocument: result.id,
           saved: true,
-          userName: _currentUser.username,
+          userName: usuario.username,
           comments: datosPost.comments,
           likes: datosPost.likes,
         );
-        print(datosPost.userWhoSaved);
-        if (datosPost.userWhoSaved == _currentUser.uid) {
+
+        if (result["userwhosaved"] == _currentUser.uid) {
           setState(() {
             savedList.add(post);
           });
@@ -266,7 +331,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       MaterialPageRoute(
                           builder: (context) =>
                               PostDetailedPage(postsList[index])),
-                    );
+                    ).then((value) {
+                      postsList.clear();
+                      setState(() {
+                        getCurrentUser(auth.currentUser.uid);
+                      });
+                    });
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(1.0),

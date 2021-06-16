@@ -1,5 +1,6 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NameForm extends StatefulWidget {
@@ -31,7 +32,7 @@ class _NameFormState extends State<NameForm> {
           color: color.colorSecundario,
           borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.only(top: 30.0, left: 20, bottom: 16),
+        padding: const EdgeInsets.only(top: 16.0, left: 20, bottom: 16),
         child: TextFormField(
           controller: widget.controllertext,
           cursorColor: Colors.white,
@@ -41,8 +42,8 @@ class _NameFormState extends State<NameForm> {
           keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
           decoration: InputDecoration(
+              counterText: '',
               focusColor: Colors.white,
-              contentPadding: EdgeInsets.zero,
               hoverColor: Colors.white,
               fillColor: Colors.white,
               border: InputBorder.none,

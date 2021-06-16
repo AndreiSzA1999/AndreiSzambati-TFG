@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:aszcars_tfg_andrei/models/posts.dart';
+import 'package:aszcars_tfg_andrei/models/savedPostmodel.dart';
 import 'package:aszcars_tfg_andrei/models/user.dart';
 import 'package:aszcars_tfg_andrei/screens/add_picture_screen/coche.dart';
 import 'package:aszcars_tfg_andrei/screens/detail_screen/detail_screen.dart';
 import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
 import 'package:aszcars_tfg_andrei/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -229,6 +231,32 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> getPostFromDB() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    List<String> postsSavedByCurrentUser = [];
+    List<String> postsLikedByCurrentUser = [];
+    FirebaseFirestore.instance.collection("saved").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        final datosPost = SavedPostModel.fromMap(result.data());
+
+        if (datosPost.userWhoSaved == auth.currentUser.uid) {
+          setState(() {
+            postsSavedByCurrentUser.add(datosPost.postDocument);
+          });
+        }
+      });
+    });
+
+    FirebaseFirestore.instance.collection("likes").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        if (result["userWhoLikedUid"] == auth.currentUser.uid) {
+          setState(() {
+            postsLikedByCurrentUser.add(result["postDoc"]);
+          });
+        }
+      });
+    });
+
     FirebaseFirestore.instance
         .collection("posts")
         .orderBy("timestamp", descending: true)
@@ -237,7 +265,9 @@ class _SearchPageState extends State<SearchPage> {
       querySnapshot.docs.forEach((result) async {
         final datosPost = PostModel.fromMap(result.data());
         UserModel usuario = await getCurrentUser(datosPost.uid);
+
         Post post = Post(
+          liked: postsLikedByCurrentUser.contains(result.id) ? true : false,
           userUid: usuario.uid,
           canDelete: false,
           userCar: datosPost.usercar,
@@ -245,22 +275,14 @@ class _SearchPageState extends State<SearchPage> {
           imageURL: datosPost.imageLink,
           profile: usuario.profileimage,
           postDocument: result.id,
-          saved: false,
+          saved: postsSavedByCurrentUser.contains(result.id) ? true : false,
           userName: usuario.username,
           comments: datosPost.comments,
           likes: datosPost.likes,
         );
-        if (car.text == "") {
-          setState(() {
-            postsList.add(post);
-          });
-        } else {
-          if (post.userCar == car.text) {
-            setState(() {
-              postsList.add(post);
-            });
-          }
-        }
+        setState(() {
+          postsList.add(post);
+        });
       });
     });
   }

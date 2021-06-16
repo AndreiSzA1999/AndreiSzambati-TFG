@@ -132,37 +132,6 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(
               height: 15,
             ),
-            Container(
-              height: 70,
-              width: screenWidth * 0.85,
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(20)),
-              child: GestureDetector(
-                onTap: () {
-                  print("Con google");
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      "assets/images/google-logo.png",
-                      height: 40,
-                    ),
-                    SizedBox(
-                      width: 20,
-                    ),
-                    Text(
-                      "Iniciar Sesión con Google",
-                      style: GoogleFonts.montserrat(
-                          fontWeight: FontWeight.w600, fontSize: 13),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 25,
-            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

@@ -1,5 +1,6 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:aszcars_tfg_andrei/models/savedPostmodel.dart';
+import 'package:aszcars_tfg_andrei/screens/coments_screen/post_comments.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -21,7 +22,7 @@ class Post extends StatefulWidget {
   final String postDocument;
   final bool canDelete;
   final String userUid;
-
+  bool liked;
   Post(
       {@required this.userUid,
       @required this.userName,
@@ -33,7 +34,8 @@ class Post extends StatefulWidget {
       @required this.saved,
       @required this.profile,
       @required this.postDocument,
-      @required this.canDelete});
+      @required this.canDelete,
+      @required this.liked});
 
   @override
   _PostState createState() => _PostState();
@@ -117,7 +119,9 @@ class _PostState extends State<Post> {
                                             .collection("posts")
                                             .doc(widget.postDocument)
                                             .delete();
-                                        Navigator.of(context).pop();
+                                        deletePostFromSavedDB();
+                                        Navigator.of(context)
+                                            .popUntil((route) => route.isFirst);
                                       },
                                     ),
                                     TextButton(
@@ -166,11 +170,27 @@ class _PostState extends State<Post> {
                       fit: BoxFit.cover))),
           Row(
             children: [
-              IconButton(
-                icon: FaIcon(FontAwesomeIcons.solidHeart,
-                    size: 20, color: Colors.white),
-                onPressed: () {},
-              ),
+              widget.liked
+                  ? IconButton(
+                      icon: FaIcon(FontAwesomeIcons.solidHeart,
+                          size: 20, color: Colors.red),
+                      onPressed: () {
+                        removePostFromLike();
+                        setState(() {
+                          widget.liked = !widget.liked;
+                        });
+                      },
+                    )
+                  : IconButton(
+                      icon: FaIcon(FontAwesomeIcons.solidHeart,
+                          size: 20, color: Colors.white),
+                      onPressed: () {
+                        addPostToLikes();
+                        setState(() {
+                          widget.liked = !widget.liked;
+                        });
+                      },
+                    ),
               Text("${widget.likes}",
                   style: GoogleFonts.montserrat(
                       color: Colors.grey.shade400,
@@ -179,7 +199,15 @@ class _PostState extends State<Post> {
               IconButton(
                 icon: FaIcon(FontAwesomeIcons.solidComments,
                     size: 20, color: Colors.white),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CommentsPage(
+                            postDocument: widget.postDocument,
+                            comments: widget.comments)),
+                  );
+                },
               ),
               Text("${widget.comments}",
                   style: GoogleFonts.montserrat(
@@ -207,7 +235,7 @@ class _PostState extends State<Post> {
                     if (widget.saved) {
                       addPostToDB();
                     } else {
-                      deletePostFromDB();
+                      deletePostFromSavedDB();
                     }
                   });
                 },
@@ -217,6 +245,67 @@ class _PostState extends State<Post> {
         ],
       ),
     );
+  }
+
+  Future<void> removePostFromLike() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    final postsRef = FirebaseFirestore.instance.collection("posts");
+
+    String docToDelete;
+    await FirebaseFirestore.instance
+        .collection("likes")
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        if (result["postDoc"] == widget.postDocument &&
+            result["userWhoLikedUid"] == auth.currentUser.uid) {
+          setState(() {
+            docToDelete = result.id;
+          });
+        }
+      });
+    });
+
+    FirebaseFirestore.instance.collection("likes").doc(docToDelete).delete();
+
+    setState(() {
+      widget.likes = widget.likes - 1;
+    });
+    postsRef.doc(widget.postDocument).update({"likes": widget.likes});
+  }
+
+  Future<void> addPostToLikes() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    String docToUpdate;
+    CollectionReference likesRef =
+        FirebaseFirestore.instance.collection("likes");
+    final postsRef = FirebaseFirestore.instance.collection("posts");
+
+    await likesRef.add({
+      "userWhoLikedUid": auth.currentUser.uid,
+      "postDoc": widget.postDocument
+    });
+    setState(() {
+      widget.likes = widget.likes + 1;
+    });
+
+    await FirebaseFirestore.instance
+        .collection("saved")
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        if (result["postDocument"] == widget.postDocument) {
+          setState(() {
+            docToUpdate = result.id;
+          });
+        }
+      });
+    });
+    FirebaseFirestore.instance
+        .collection("saved")
+        .doc(docToUpdate)
+        .update({"likes": widget.likes});
+    postsRef.doc(widget.postDocument).update({"likes": widget.likes});
   }
 
   Future<void> addPostToDB() async {
@@ -235,22 +324,23 @@ class _PostState extends State<Post> {
     await userRef.doc().set(postModel.toMap(postModel));
   }
 
-  Future<void> deletePostFromDB() async {
+  Future<void> deletePostFromSavedDB() async {
     String docToDelete;
     await FirebaseFirestore.instance
         .collection("saved")
         .get()
         .then((querySnapshot) {
       querySnapshot.docs.forEach((result) async {
-        print(result["postDocument"] + " ------------>" + widget.postDocument);
         if (result["postDocument"] == widget.postDocument) {
           setState(() {
             docToDelete = result.id;
           });
+          FirebaseFirestore.instance
+              .collection("saved")
+              .doc(docToDelete)
+              .delete();
         }
       });
     });
-    print(docToDelete);
-    FirebaseFirestore.instance.collection("saved").doc(docToDelete).delete();
   }
 }

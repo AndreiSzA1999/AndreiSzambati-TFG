@@ -2,7 +2,7 @@
     package="com.example.aszcars_tfg_andrei">
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
    <application
-        android:label="aszcars_tfg_andrei"
+        android:label="Aszcars"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

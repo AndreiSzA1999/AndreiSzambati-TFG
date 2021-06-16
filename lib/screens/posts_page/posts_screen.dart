@@ -36,7 +36,7 @@ class _PostsPageState extends State<PostsPage> {
 
   Future<void> getPostFromDB() async {
     List<String> postsSavedByCurrentUser = [];
-
+    List<String> postsLikedByCurrentUser = [];
     FirebaseFirestore.instance.collection("saved").get().then((querySnapshot) {
       querySnapshot.docs.forEach((result) async {
         final datosPost = SavedPostModel.fromMap(result.data());
@@ -44,6 +44,16 @@ class _PostsPageState extends State<PostsPage> {
         if (datosPost.userWhoSaved == auth.currentUser.uid) {
           setState(() {
             postsSavedByCurrentUser.add(datosPost.postDocument);
+          });
+        }
+      });
+    });
+
+    FirebaseFirestore.instance.collection("likes").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        if (result["userWhoLikedUid"] == auth.currentUser.uid) {
+          setState(() {
+            postsLikedByCurrentUser.add(result["postDoc"]);
           });
         }
       });
@@ -57,7 +67,9 @@ class _PostsPageState extends State<PostsPage> {
       querySnapshot.docs.forEach((result) async {
         final datosPost = PostModel.fromMap(result.data());
         UserModel usuario = await getCurrentUser(datosPost.uid);
+
         Post post = Post(
+          liked: postsLikedByCurrentUser.contains(result.id) ? true : false,
           userUid: usuario.uid,
           canDelete: false,
           userCar: datosPost.usercar,

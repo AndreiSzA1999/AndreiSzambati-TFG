@@ -39,9 +39,14 @@ dependencies:
   firebase_storage: ^8.1.0
   image_picker: ^0.7.5+2
   flutter_keyboard_visibility: ^5.0.2
+  flutter_launcher_icons: ^0.9.0
+  nanoid: ^1.0.0
 
   
-
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logoapp.png"
 
 
 
