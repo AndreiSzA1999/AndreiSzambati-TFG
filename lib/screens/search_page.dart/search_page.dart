@@ -66,7 +66,7 @@ class _SearchPageState extends State<SearchPage> {
                                 FocusScopeNode currentFocus =
                                     FocusScope.of(context);
                                 postsList.clear();
-                                getPostFromDB();
+                                getConcretCarFromDB();
                                 if (!currentFocus.hasPrimaryFocus) {
                                   currentFocus.unfocus();
                                 }
@@ -223,10 +223,8 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<UserModel> getCurrentUser(String uid) async {
-    print("Cogiendo usuario****************************");
     UserModel currentUser =
         await context.read<AuthenticationService>().getUserFromDB(uid: uid);
-    print("usuario cogido");
     return currentUser;
   }
 
@@ -238,7 +236,6 @@ class _SearchPageState extends State<SearchPage> {
     FirebaseFirestore.instance.collection("saved").get().then((querySnapshot) {
       querySnapshot.docs.forEach((result) async {
         final datosPost = SavedPostModel.fromMap(result.data());
-
         if (datosPost.userWhoSaved == auth.currentUser.uid) {
           setState(() {
             postsSavedByCurrentUser.add(datosPost.postDocument);
@@ -283,6 +280,66 @@ class _SearchPageState extends State<SearchPage> {
         setState(() {
           postsList.add(post);
         });
+      });
+    });
+  }
+
+  Future<void> getConcretCarFromDB() async {
+    postsList.clear();
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    List<String> postsSavedByCurrentUser = [];
+    List<String> postsLikedByCurrentUser = [];
+    FirebaseFirestore.instance.collection("saved").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        final datosPost = SavedPostModel.fromMap(result.data());
+        if (datosPost.userWhoSaved == auth.currentUser.uid) {
+          setState(() {
+            postsSavedByCurrentUser.add(datosPost.postDocument);
+          });
+        }
+      });
+    });
+
+    FirebaseFirestore.instance.collection("likes").get().then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        if (result["userWhoLikedUid"] == auth.currentUser.uid) {
+          setState(() {
+            postsLikedByCurrentUser.add(result["postDoc"]);
+          });
+        }
+      });
+    });
+
+    FirebaseFirestore.instance
+        .collection("posts")
+        .orderBy("timestamp", descending: true)
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) async {
+        final datosPost = PostModel.fromMap(result.data());
+        UserModel usuario = await getCurrentUser(datosPost.uid);
+
+        Post post = Post(
+          liked: postsLikedByCurrentUser.contains(result.id) ? true : false,
+          userUid: usuario.uid,
+          canDelete: false,
+          userCar: datosPost.usercar,
+          description: datosPost.descripcion,
+          imageURL: datosPost.imageLink,
+          profile: usuario.profileimage,
+          postDocument: result.id,
+          saved: postsSavedByCurrentUser.contains(result.id) ? true : false,
+          userName: usuario.username,
+          comments: datosPost.comments,
+          likes: datosPost.likes,
+        );
+
+        if (datosPost.usercar == car.text) {
+          setState(() {
+            postsList.add(post);
+          });
+        }
       });
     });
   }

@@ -22,7 +22,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String _description;
   String _newProfileImage;
   String _error = "";
+  String _userName;
 
+  TextEditingController descripcionController;
+  TextEditingController nombreController;
   @override
   void initState() {
     super.initState();
@@ -38,6 +41,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() {
       _profileImage = _currentUser.profileimage;
       _description = _currentUser.descripcion;
+      _userName = _currentUser.username;
+      descripcionController = TextEditingController(text: _description);
+      nombreController = TextEditingController(text: _userName);
     });
   }
 
@@ -76,9 +82,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _newProfileImage = downloadUrl;
     });
   }
-
-  final TextEditingController descripcionController = TextEditingController();
-  final TextEditingController nombreController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -171,18 +174,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             maxLines: 3,
                             maxLength: 50,
                             decoration: InputDecoration(
-                                contentPadding: EdgeInsets.only(
-                                    top: 10, right: 10, bottom: 10),
+                                counterText: '',
                                 focusColor: Colors.white,
                                 hoverColor: Colors.white,
                                 fillColor: Colors.white,
                                 border: InputBorder.none,
                                 focusedBorder: InputBorder.none,
                                 errorBorder: InputBorder.none,
-                                icon: Icon(
-                                  Icons.description,
-                                  color: color.colorTextoSecundario,
-                                ),
                                 floatingLabelBehavior:
                                     FloatingLabelBehavior.never,
                                 labelText: "Nueva Descripcion",

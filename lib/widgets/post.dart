@@ -1,6 +1,8 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
 import 'package:aszcars_tfg_andrei/models/savedPostmodel.dart';
 import 'package:aszcars_tfg_andrei/screens/coments_screen/post_comments.dart';
+import 'package:aszcars_tfg_andrei/screens/profile_screen/other_profile.dart';
+import 'package:aszcars_tfg_andrei/screens/user_select_page/user_select.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -72,12 +74,21 @@ class _PostState extends State<Post> {
               SizedBox(
                 width: 20,
               ),
-              CircleAvatar(
-                  radius: 20,
-                  backgroundImage:
-                      widget.profile == null || widget.profile.isEmpty
-                          ? AssetImage("assets/images/noimage.png")
-                          : NetworkImage(widget.profile)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              OtherProfilePage(widget.userUid)));
+                },
+                child: CircleAvatar(
+                    radius: 20,
+                    backgroundImage:
+                        widget.profile == null || widget.profile.isEmpty
+                            ? AssetImage("assets/images/noimage.png")
+                            : NetworkImage(widget.profile)),
+              ),
               SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,7 +231,12 @@ class _PostState extends State<Post> {
                   color: Colors.white,
                 ),
                 splashColor: Colors.black,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserSelectPage()),
+                  );
+                },
               ),
               IconButton(
                 splashColor: Colors.black,

@@ -106,78 +106,85 @@ class _AddPicturePageState extends State<AddPicturePage> {
                 ],
               ),
               SizedBox(height: 20),
-              Container(
-                height: 70,
-                width: screenWidth * 0.85,
-                decoration: BoxDecoration(
-                    color: color.colorSecundario,
-                    borderRadius: BorderRadius.circular(20)),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
-                  child: TextFormField(
-                    enabled: false,
-                    controller: car,
-                    obscureText: false,
-                    cursorColor: Colors.white,
-                    style: GoogleFonts.montserrat(
-                        color: Colors.white, fontWeight: FontWeight.w400),
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(
-                        focusColor: Colors.white,
-                        hoverColor: Colors.white,
-                        fillColor: Colors.white,
-                        border: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        icon: Icon(
-                          Icons.car_rental,
-                          color: color.colorTextoSecundario,
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelText: "Coche de la imagen",
-                        labelStyle: GoogleFonts.montserrat(
-                            color: color.colorTextoSecundario, fontSize: 15)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      _chooseImage();
+                    },
+                    child: Container(
+                        height: screenWidth * 0.30,
+                        width: screenWidth * 0.30,
+                        decoration: BoxDecoration(
+                            color: color.colorSecundario,
+                            borderRadius: BorderRadius.circular(20),
+                            image: imageUrl == ""
+                                ? DecorationImage(
+                                    scale: 10,
+                                    image: AssetImage(
+                                      'assets/images/camara.png',
+                                    ),
+                                  )
+                                : DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: NetworkImage(imageUrl),
+                                  ))),
                   ),
-                ),
+                  GestureDetector(
+                    onTap: () {
+                      _navigateAndDisplaySelection(context);
+                    },
+                    child: Container(
+                      height: screenWidth * 0.20,
+                      width: screenWidth * 0.50,
+                      decoration: BoxDecoration(
+                          color: color.colorSecundario,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            top: 20.0, left: 20, bottom: 16),
+                        child: TextFormField(
+                          enabled: false,
+                          controller: car,
+                          obscureText: false,
+                          cursorColor: Colors.white,
+                          style: GoogleFonts.montserrat(
+                              color: Colors.white, fontWeight: FontWeight.w400),
+                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                              focusColor: Colors.white,
+                              hoverColor: Colors.white,
+                              fillColor: Colors.white,
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              icon: Icon(
+                                Icons.car_rental,
+                                color: color.colorTextoSecundario,
+                              ),
+                              floatingLabelBehavior:
+                                  FloatingLabelBehavior.never,
+                              labelText: "Seleccionar Coche",
+                              labelStyle: GoogleFonts.montserrat(
+                                  color: color.colorTextoSecundario,
+                                  fontSize: 15)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 20),
               Container(
-                height: 70,
-                width: screenWidth * 0.85,
-                decoration: BoxDecoration(
-                    color: color.colorBoton,
-                    borderRadius: BorderRadius.circular(20)),
-                child: GestureDetector(
-                  onTap: () {
-                    _navigateAndDisplaySelection(context);
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Elegir coche",
-                        style: GoogleFonts.montserrat(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                height: 150,
+                height: 100,
                 width: screenWidth * 0.85,
                 decoration: BoxDecoration(
                     color: color.colorSecundario,
                     borderRadius: BorderRadius.circular(20)),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.only(top: 20.0, left: 20, bottom: 16),
+                  padding: const EdgeInsets.only(right: 20.0, left: 20),
                   child: TextFormField(
                     controller: descripcion,
                     obscureText: false,
@@ -186,18 +193,15 @@ class _AddPicturePageState extends State<AddPicturePage> {
                         color: Colors.white, fontWeight: FontWeight.w400),
                     keyboardType: TextInputType.multiline,
                     maxLines: 3,
-                    maxLength: 100,
+                    maxLength: 50,
                     decoration: InputDecoration(
+                        counterText: '',
                         focusColor: Colors.white,
                         hoverColor: Colors.white,
                         fillColor: Colors.white,
                         border: InputBorder.none,
                         focusedBorder: InputBorder.none,
                         errorBorder: InputBorder.none,
-                        icon: Icon(
-                          Icons.description,
-                          color: color.colorTextoSecundario,
-                        ),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         labelText: "Descripcion",
                         labelStyle: GoogleFonts.montserrat(
@@ -208,94 +212,71 @@ class _AddPicturePageState extends State<AddPicturePage> {
               SizedBox(
                 height: 20,
               ),
-              Container(
-                height: 70,
-                width: screenWidth * 0.85,
-                decoration: BoxDecoration(
-                    color: color.colorBoton,
-                    borderRadius: BorderRadius.circular(20)),
-                child: GestureDetector(
-                  onTap: () {
-                    _chooseImage();
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Elegir imagen",
-                        style: GoogleFonts.montserrat(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _imagefile == null
-                      ? Text(
-                          "Fichero",
-                          style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13),
+              show
+                  ? car.text != ""
+                      ? Container(
+                          height: 70,
+                          width: screenWidth * 0.85,
+                          decoration: BoxDecoration(
+                              color: color.colorBoton,
+                              borderRadius: BorderRadius.circular(20)),
+                          child: GestureDetector(
+                            onTap: () {
+                              addPostToDB();
+                              setState(() {
+                                publicada = "Post publicado.";
+                              });
+                              Future.delayed(const Duration(milliseconds: 100),
+                                  () {
+                                Navigator.of(context).pushReplacement(
+                                    new MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            AuthenticationWrapper()));
+                              });
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Publicar",
+                                  style: GoogleFonts.montserrat(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13),
+                                )
+                              ],
+                            ),
+                          ))
+                      : Container(
+                          height: 70,
+                          width: screenWidth * 0.85,
+                          decoration: BoxDecoration(
+                              color: color.colorSecundario,
+                              borderRadius: BorderRadius.circular(20)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Selecciona un coche",
+                                style: GoogleFonts.montserrat(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13),
+                              )
+                            ],
+                          ),
                         )
-                      : Text(
-                          "Imagen Seleccionada",
-                          style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13),
-                        )
-                ],
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                height: 70,
-                width: screenWidth * 0.85,
-                decoration: BoxDecoration(
-                    color: color.colorBoton,
-                    borderRadius: BorderRadius.circular(20)),
-                child: show
-                    ? GestureDetector(
-                        onTap: () {
-                          addPostToDB();
-                          setState(() {
-                            publicada = "Post publicado.";
-                          });
-                          Future.delayed(const Duration(milliseconds: 100), () {
-                            Navigator.of(context).pushReplacement(
-                                new MaterialPageRoute(
-                                    builder: (BuildContext context) =>
-                                        AuthenticationWrapper()));
-                          });
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Publicar",
-                              style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13),
-                            )
-                          ],
-                        ),
-                      )
-                    : Row(
+                  : Container(
+                      height: 70,
+                      width: screenWidth * 0.85,
+                      decoration: BoxDecoration(
+                          color: color.colorSecundario,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Seleccione la imagen",
+                            "Selecciona una imagen",
                             style: GoogleFonts.montserrat(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
@@ -303,7 +284,7 @@ class _AddPicturePageState extends State<AddPicturePage> {
                           )
                         ],
                       ),
-              ),
+                    ),
               SizedBox(
                 height: 20,
               ),
@@ -327,7 +308,7 @@ class _AddPicturePageState extends State<AddPicturePage> {
         descripcion: descripcion.text,
         imageLink: imageUrl,
         usercar: car.text,
-        timestamp: DateTime.now());
+        timestamp: Timestamp.now());
     await userRef.doc().set(postModel.toMap(postModel));
   }
 
@@ -475,7 +456,6 @@ class _ElegirCocheState extends State<ElegirCoche> {
           _allCars.add(_coches[i].marca + " " + _coches[i].modelos[j]);
         }
       }
-
       _withFilter = List.from(_allCars);
     });
   }

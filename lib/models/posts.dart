@@ -1,10 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class PostModel {
   int likes;
   int comments;
   String descripcion;
   String imageLink;
   String usercar;
-  DateTime timestamp;
+  Timestamp timestamp;
   String uid;
   String document;
 
