@@ -234,7 +234,9 @@ class _PostState extends State<Post> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => UserSelectPage()),
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            UserSelectPage(widget.postDocument)),
                   );
                 },
               ),

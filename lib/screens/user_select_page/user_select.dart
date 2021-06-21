@@ -1,13 +1,19 @@
 import 'package:aszcars_tfg_andrei/constants/color_palette.dart';
-import 'package:aszcars_tfg_andrei/models/posts.dart';
+
 import 'package:aszcars_tfg_andrei/models/user.dart';
 import 'package:aszcars_tfg_andrei/services/authentication_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:nanoid/nanoid.dart';
 import 'package:provider/provider.dart';
 
 class UserSelectPage extends StatefulWidget {
+  final String postUid;
+
+  UserSelectPage(this.postUid);
+
   @override
   _UserSelectPageState createState() => _UserSelectPageState();
 }
@@ -17,9 +23,12 @@ class _UserSelectPageState extends State<UserSelectPage> {
   List<bool> enviados = List<bool>.generate(100, (index) => false);
   TextEditingController nombreUsuario = TextEditingController();
   String estado;
+  FirebaseAuth auth;
+
   @override
   void initState() {
     super.initState();
+    auth = FirebaseAuth.instance;
     estado = "buscando";
     getUser();
   }
@@ -33,9 +42,11 @@ class _UserSelectPageState extends State<UserSelectPage> {
         UserModel user = await context
             .read<AuthenticationService>()
             .getUserFromDB(uid: result["uid"]);
-        setState(() {
-          usuarios.add(user);
-        });
+        if (user.uid != auth.currentUser.uid) {
+          setState(() {
+            usuarios.add(user);
+          });
+        }
       });
     });
     setState(() {
@@ -181,11 +192,19 @@ class _UserSelectPageState extends State<UserSelectPage> {
                                               color: ColorsPalette().colorBoton,
                                             )
                                           : GestureDetector(
-                                              onTap: () {
+                                              onTap: () async {
                                                 setState(() {
                                                   enviados[index] =
                                                       !enviados[index];
-                                                  print("enviado");
+                                                });
+                                                final messagesRef =
+                                                    FirebaseFirestore.instance
+                                                        .collection("messages");
+                                                await messagesRef.add({
+                                                  "from": auth.currentUser.uid,
+                                                  "to": usuarios[index].uid,
+                                                  "postid": widget.postUid,
+                                                  "unicuid": nanoid(10)
                                                 });
                                               },
                                               child: Icon(
